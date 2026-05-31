@@ -156,6 +156,9 @@ const translations = {
     safetyReviewNeeded: "Review needed",
     noMemoryYet: "No long-term memory yet. Generate a plan or send feedback to teach FitAgent.",
     noSafetyWarnings: "No obvious risk was found by the basic safety checker.",
+    exerciseSets: "Sets",
+    exerciseReps: "Reps / time",
+    exerciseRest: "Rest",
     weeklyPlan: "Weekly Plan",
     weeklyPlanHint: "Edit exercises, sets, reps, and rest time directly in the plan.",
     history: "History",
@@ -263,6 +266,9 @@ const translations = {
     safetyReviewNeeded: "需要复核",
     noMemoryYet: "暂无长期记忆。生成计划或发送反馈后，FitAgent 会开始记住你的偏好。",
     noSafetyWarnings: "基础安全检查未发现明显风险。",
+    exerciseSets: "组数",
+    exerciseReps: "次数/时长",
+    exerciseRest: "休息",
     weeklyPlan: "每周计划",
     weeklyPlanHint: "可以直接修改计划中的动作、组数、次数和休息时间。",
     history: "历史记录",
@@ -339,32 +345,32 @@ const exerciseTranslations = {
     safety: "如果出现明显腰痛，请停止动作。",
   },
   Clamshell: {
-    name: "蚌式开合",
+    name: "侧卧蚌式开合",
     instruction: "保持骨盆叠放稳定，打开上侧膝盖时不要让身体向后滚。",
     safety: "使用小而无痛的活动范围。",
   },
   "Side-Lying Hip Abduction": {
-    name: "侧卧髋外展",
+    name: "侧卧抬腿",
     instruction: "上侧腿略微向身体后方抬起，脚尖保持朝前。",
     safety: "避免髋前侧出现夹挤感。",
   },
   "Bodyweight Squat": {
-    name: "自重深蹲",
+    name: "徒手深蹲",
     instruction: "臀部向后向下坐，膝盖沿脚尖方向稳定移动。",
     safety: "深度以自己能稳定控制为准。",
   },
   "Wall Angel": {
-    name: "靠墙天使",
+    name: "靠墙滑臂",
     instruction: "肋骨下沉，手臂沿墙面在舒适范围内上下滑动。",
     safety: "不要强行追求肩部活动幅度。",
   },
   "Bird Dog": {
-    name: "鸟狗式",
+    name: "四点跪姿对侧伸展",
     instruction: "对侧手脚伸出，同时保持骨盆水平和躯干稳定。",
     safety: "慢速完成，颈部保持放松。",
   },
   "Dead Bug": {
-    name: "死虫式",
+    name: "仰卧死虫",
     instruction: "腰背轻轻贴向地面，对侧手脚缓慢移动。",
     safety: "如果腰部拱起，就缩小动作幅度。",
   },
@@ -374,12 +380,12 @@ const exerciseTranslations = {
     safety: "动作变形前就结束这一组。",
   },
   "Side Plank": {
-    name: "侧平板支撑",
+    name: "侧桥支撑",
     instruction: "肩、髋叠放，抬起骨盆并保持身体侧线稳定。",
     safety: "需要时可以改成屈膝版本。",
   },
   "Hip Flexor Stretch": {
-    name: "髋屈肌拉伸",
+    name: "跪姿髋前侧拉伸",
     instruction: "轻轻收骨盆，再向前移动到髋前侧有拉伸感。",
     safety: "避免通过塌腰来增加幅度。",
   },
@@ -389,22 +395,22 @@ const exerciseTranslations = {
     safety: "保持温和拉伸，不要拉到疼痛。",
   },
   "Reverse Snow Angel": {
-    name: "俯卧反向雪天使",
+    name: "俯卧肩胛划臂",
     instruction: "俯卧后手臂缓慢划弧，肩膀远离耳朵。",
     safety: "肩部紧张时缩小动作范围。",
   },
   "Step-Up": {
-    name: "台阶上步",
+    name: "台阶踏上",
     instruction: "整只脚踩稳发力，下降阶段慢慢控制。",
     safety: "先使用较低台阶。",
   },
   "Split Squat": {
-    name: "分腿蹲",
+    name: "原地分腿蹲",
     instruction: "身体垂直下降，前侧膝盖稳定朝脚尖方向移动。",
     safety: "需要平衡时扶墙完成。",
   },
   "Bodyweight Good Morning": {
-    name: "自重早安式",
+    name: "徒手髋铰链",
     instruction: "从髋部折叠，脊柱保持延展，再收紧臀部站起。",
     safety: "只做到能轻松控制的幅度。",
   },
@@ -414,7 +420,7 @@ const exerciseTranslations = {
     safety: "可以扶墙保持平衡。",
   },
   "Slow Mountain Climber": {
-    name: "慢速登山者",
+    name: "慢速登山跑",
     instruction: "膝盖向胸口移动，避免髋部上下弹动。",
     safety: "手腕或腰背不适时放慢速度。",
   },
@@ -424,12 +430,12 @@ const exerciseTranslations = {
     safety: "动作变形时退回普通臀桥。",
   },
   "Hip Abduction Machine": {
-    name: "坐姿髋外展器械",
+    name: "坐姿髋外展",
     instruction: "有控制地打开双膝，短暂停顿后慢慢回位。",
     safety: "选择不会造成髋部夹挤的重量。",
   },
   "Cable Hip Abduction": {
-    name: "绳索髋外展",
+    name: "绳索侧抬腿",
     instruction: "站直后将训练腿向身体外侧略后方移动。",
     safety: "避免身体倾斜或甩腿借力。",
   },
@@ -449,42 +455,42 @@ const exerciseTranslations = {
     safety: "不要做颈后下拉。",
   },
   "Face Pull": {
-    name: "面拉",
+    name: "绳索面拉",
     instruction: "绳索拉向眼睛高度，手肘抬高，手腕放松。",
     safety: "使用轻重量并保持动作顺滑。",
   },
   "Leg Press": {
-    name: "腿举",
+    name: "器械腿举",
     instruction: "整只脚发力推起，膝盖稳定朝脚尖方向移动。",
     safety: "顶端不要用力锁死膝盖。",
   },
   "Goblet Squat": {
-    name: "高脚杯深蹲",
+    name: "哑铃杯式深蹲",
     instruction: "将重量抱在胸前，深蹲时保持膝盖稳定。",
     safety: "选择能保持姿态稳定的重量。",
   },
   "Cable Pull Through": {
-    name: "绳索髋拉",
+    name: "绳索臀部后拉",
     instruction: "向后做髋铰链，再通过收紧臀部站直。",
     safety: "不要把它做成深蹲。",
   },
   "Back Extension": {
-    name: "背伸展",
+    name: "罗马椅挺身",
     instruction: "从髋部发力完成动作，顶端保持脊柱自然延展。",
     safety: "不要过度后仰腰椎。",
   },
   "Chest-Supported Row": {
-    name: "胸托划船",
+    name: "俯身胸托划船",
     instruction: "胸部贴稳长凳，手肘朝髋部方向拉。",
     safety: "颈部保持放松。",
   },
   "Pallof Press": {
-    name: "帕洛夫抗旋推",
+    name: "绳索抗旋转推",
     instruction: "双手向前推出，同时抵抗躯干旋转。",
     safety: "先使用轻阻力。",
   },
   "Incline Walk": {
-    name: "坡度走",
+    name: "坡度快走",
     instruction: "用呼吸加快但仍可控制的速度行走。",
     safety: "只有需要平衡时才扶扶手。",
   },
@@ -895,10 +901,17 @@ function exerciseEditor(exercise, dayIndex, exerciseIndex) {
   const row = document.createElement("div");
   row.className = "exercise-row";
   row.innerHTML = `
-    <input aria-label="Exercise name" value="${escapeAttr(localizeExerciseName(exercise.name))}" data-field="name" />
-    <input aria-label="Sets" value="${escapeAttr(exercise.sets)}" data-field="sets" />
-    <input aria-label="Reps or duration" value="${escapeAttr(localizeRepsOrDuration(exercise.reps_or_duration))}" data-field="reps_or_duration" />
-    <input aria-label="Rest seconds" type="number" value="${exercise.rest_seconds}" data-field="rest_seconds" />
+    <div class="exercise-visual">
+      <img src="${exerciseImageSrc(exercise)}" alt="${escapeAttr(localizeExerciseName(exercise.name))} illustration" loading="lazy" />
+    </div>
+    <div class="exercise-fields">
+      <input class="exercise-name-input" aria-label="Exercise name" value="${escapeAttr(localizeExerciseName(exercise.name))}" data-field="name" />
+      <div class="exercise-stats">
+        <label><span>${t("exerciseSets")}</span><input aria-label="Sets" value="${escapeAttr(exercise.sets)}" data-field="sets" /></label>
+        <label><span>${t("exerciseReps")}</span><input aria-label="Reps or duration" value="${escapeAttr(localizeRepsOrDuration(exercise.reps_or_duration))}" data-field="reps_or_duration" /></label>
+        <label><span>${t("exerciseRest")}</span><input aria-label="Rest seconds" type="number" value="${exercise.rest_seconds}" data-field="rest_seconds" /></label>
+      </div>
+    </div>
     <div class="exercise-meta">${escapeHtml(localizeExerciseInstruction(exercise))}<br />${labelWithColon(t("safety"))} ${escapeHtml(localizeExerciseSafety(exercise))}</div>
   `;
   row.querySelectorAll("input").forEach((input) => {
@@ -909,6 +922,212 @@ function exerciseEditor(exercise, dayIndex, exerciseIndex) {
     });
   });
   return row;
+}
+
+const exerciseVisualById = {
+  home_glute_bridge: "bridge",
+  home_clamshell: "side_lying",
+  home_side_lying_abduction: "side_lying",
+  home_bodyweight_squat: "squat",
+  home_wall_angel: "wall",
+  home_bird_dog: "quadruped",
+  home_dead_bug: "supine",
+  home_plank: "plank",
+  home_side_plank: "side_plank",
+  home_hip_flexor_stretch: "lunge",
+  home_chest_stretch: "doorway",
+  home_reverse_snow_angel: "prone",
+  home_step_up: "step",
+  home_split_squat: "split_squat",
+  home_good_morning: "hinge",
+  home_calf_raise: "calf_raise",
+  home_mountain_climber: "mountain",
+  home_glute_march: "bridge",
+  gym_hip_abduction_machine: "machine",
+  gym_cable_hip_abduction: "cable_stand",
+  gym_romanian_deadlift: "hinge_weight",
+  gym_seated_row: "row",
+  gym_lat_pulldown: "pulldown",
+  gym_face_pull: "face_pull",
+  gym_leg_press: "leg_press",
+  gym_goblet_squat: "goblet",
+  gym_cable_pull_through: "cable_hinge",
+  gym_back_extension: "back_extension",
+  gym_chest_supported_row: "bench_row",
+  gym_pallof_press: "pallof",
+  gym_treadmill_incline_walk: "treadmill",
+  gym_sled_push: "sled",
+};
+
+function exerciseImageSrc(exercise) {
+  const pose = exerciseVisualById[exercise.exercise_ref_id] || poseFromExerciseName(exercise.name);
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(exerciseSvg(exercise, pose))}`;
+}
+
+function poseFromExerciseName(name) {
+  const text = String(name).toLowerCase();
+  if (text.includes("squat")) return "squat";
+  if (text.includes("row")) return "row";
+  if (text.includes("plank")) return "plank";
+  if (text.includes("bridge")) return "bridge";
+  if (text.includes("stretch")) return "lunge";
+  if (text.includes("walk")) return "treadmill";
+  return "standing";
+}
+
+function exerciseSvg(exercise, pose) {
+  const scene = sceneForExercise(exercise, pose);
+  const body = exercisePoseMarkup(pose);
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 168" role="img">
+      <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#ffffff"/>
+          <stop offset="1" stop-color="${scene.bg}"/>
+        </linearGradient>
+      </defs>
+      <rect width="240" height="168" rx="18" fill="url(#bg)"/>
+      ${scene.backdrop}
+      <path d="M22 134H218" stroke="#d8ded9" stroke-width="6" stroke-linecap="round"/>
+      <rect x="14" y="12" width="${scene.badgeWidth}" height="25" rx="12.5" fill="${scene.badgeFill}"/>
+      <text x="27" y="29" fill="${scene.badgeText}" font-family="Arial, sans-serif" font-size="12" font-weight="800">${scene.badge}</text>
+      <text x="18" y="157" fill="#5f6874" font-family="Arial, sans-serif" font-size="12" font-weight="700">${escapeSvgText(scene.equipment)}</text>
+      <g transform="translate(30 22) scale(1.06)">
+        ${body}
+      </g>
+    </svg>
+  `;
+}
+
+function sceneForExercise(exercise, pose) {
+  const refId = exercise.exercise_ref_id || "";
+  const isGym = refId.startsWith("gym_");
+  const equipment = equipmentLabel(exercise, pose, isGym);
+  return {
+    bg: isGym ? "#f3f6fb" : "#f7faf8",
+    badge: isGym ? (currentLanguage === "zh" ? "健身房" : "GYM") : currentLanguage === "zh" ? "居家" : "HOME",
+    badgeWidth: currentLanguage === "zh" ? 66 : isGym ? 54 : 66,
+    badgeFill: isGym ? "#dbeafe" : "#e4f1eb",
+    badgeText: isGym ? "#326da8" : "#26735a",
+    equipment,
+    backdrop: isGym ? gymBackdrop(pose) : homeBackdrop(pose),
+  };
+}
+
+function homeBackdrop(pose) {
+  const mat = `<rect x="40" y="122" width="142" height="12" rx="6" fill="#dceee5"/>`;
+  const room = `<path d="M190 34h28v38h-28z" fill="#fff" stroke="#d8ded9" stroke-width="3"/><path d="M204 34v38M190 53h28" stroke="#d8ded9" stroke-width="2"/>`;
+  const plant = `<path d="M31 116c-7-14 2-28 13-34c1 16-3 26-13 34zM31 116c7-12 18-17 30-13c-8 10-17 14-30 13z" fill="#e4f1eb" stroke="#26735a" stroke-width="2"/>`;
+  const wall = pose === "wall" ? `<path d="M42 38v86" stroke="#b38324" stroke-width="5" stroke-linecap="round"/>` : "";
+  const doorway = pose === "doorway" ? `<path d="M46 32v92M130 32v92M46 32h84" stroke="#b38324" stroke-width="5" stroke-linecap="round"/>` : "";
+  const step = pose === "step" ? `<rect x="126" y="112" width="62" height="18" rx="5" fill="#e4f1eb" stroke="#26735a" stroke-width="4"/>` : "";
+  return `${room}${plant}${mat}${wall}${doorway}${step}`;
+}
+
+function gymBackdrop(pose) {
+  const rack = `<path d="M34 34v92M206 34v92M34 48h172" stroke="#cbd4ce" stroke-width="5" stroke-linecap="round"/>`;
+  const plates = `<circle cx="202" cy="103" r="14" fill="#edf1ed" stroke="#326da8" stroke-width="4"/><circle cx="202" cy="103" r="5" fill="#fff" stroke="#326da8" stroke-width="3"/>`;
+  const cable = ["cable_stand", "cable_hinge", "face_pull", "pallof", "pulldown", "row"].includes(pose)
+    ? `<path d="M38 28v102M38 45h30M38 112h30" stroke="#326da8" stroke-width="5" stroke-linecap="round"/><path d="M38 45L82 82" stroke="#5f6874" stroke-width="2"/>`
+    : "";
+  const bench = ["bench_row", "back_extension"].includes(pose)
+    ? `<rect x="76" y="108" width="100" height="15" rx="5" fill="#dbeafe" stroke="#326da8" stroke-width="4"/>`
+    : "";
+  return `${rack}${plates}${cable}${bench}`;
+}
+
+function equipmentLabel(exercise, pose, isGym) {
+  const refId = exercise.exercise_ref_id || "";
+  const homeEquipment = {
+    home_glute_bridge: ["Mat only", "瑜伽垫"],
+    home_clamshell: ["Mat / mini band optional", "瑜伽垫 / 可加弹力带"],
+    home_side_lying_abduction: ["Mat only", "瑜伽垫"],
+    home_bodyweight_squat: ["Bodyweight", "徒手"],
+    home_wall_angel: ["Wall", "墙面"],
+    home_bird_dog: ["Mat only", "瑜伽垫"],
+    home_dead_bug: ["Mat only", "瑜伽垫"],
+    home_plank: ["Mat only", "瑜伽垫"],
+    home_side_plank: ["Mat only", "瑜伽垫"],
+    home_hip_flexor_stretch: ["Mat only", "瑜伽垫"],
+    home_chest_stretch: ["Doorway", "门框"],
+    home_reverse_snow_angel: ["Mat only", "瑜伽垫"],
+    home_step_up: ["Stable step", "稳定台阶"],
+    home_split_squat: ["Bodyweight", "徒手"],
+    home_good_morning: ["Bodyweight", "徒手"],
+    home_calf_raise: ["Wall support", "扶墙"],
+    home_mountain_climber: ["Mat only", "瑜伽垫"],
+    home_glute_march: ["Mat only", "瑜伽垫"],
+  };
+  const gymEquipment = {
+    gym_hip_abduction_machine: ["Hip abduction machine", "髋外展器械"],
+    gym_cable_hip_abduction: ["Cable machine", "绳索器械"],
+    gym_romanian_deadlift: ["Dumbbells or barbell", "哑铃或杠铃"],
+    gym_seated_row: ["Cable row", "坐姿划船器"],
+    gym_lat_pulldown: ["Pulldown machine", "高位下拉器"],
+    gym_face_pull: ["Cable rope", "绳索把手"],
+    gym_leg_press: ["Leg press machine", "腿举器械"],
+    gym_goblet_squat: ["Dumbbell", "哑铃"],
+    gym_cable_pull_through: ["Cable machine", "绳索器械"],
+    gym_back_extension: ["Back extension bench", "罗马椅"],
+    gym_chest_supported_row: ["Bench and dumbbells", "上斜凳和哑铃"],
+    gym_pallof_press: ["Cable or band", "绳索或弹力带"],
+    gym_treadmill_incline_walk: ["Treadmill", "跑步机"],
+    gym_sled_push: ["Sled", "训练雪橇"],
+  };
+  const label = isGym ? gymEquipment[refId] : homeEquipment[refId];
+  if (Array.isArray(label)) return currentLanguage === "zh" ? label[1] : label[0];
+  return isGym ? (currentLanguage === "zh" ? "健身房器械" : "Gym equipment") : currentLanguage === "zh" ? "居家训练" : "Home setup";
+}
+
+function escapeSvgText(value) {
+  return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+}
+
+function exercisePoseMarkup(pose) {
+  const stroke = "#20242a";
+  const accent = "#26735a";
+  const muted = "#b38324";
+  const common = `stroke="${stroke}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"`;
+  const accentLine = `stroke="${accent}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"`;
+  const thin = `stroke="${muted}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"`;
+  const head = (cx, cy) => `<circle cx="${cx}" cy="${cy}" r="10" fill="#f0c8b7" stroke="${stroke}" stroke-width="4"/>`;
+  const dumbbell = `<path d="M36 92h24M32 84v16M64 84v16" ${thin}/>`;
+
+  const poses = {
+    standing: `${head(86, 30)}<path d="M86 42v34M68 58h36M86 76l-18 26M86 76l20 26" ${common}/>`,
+    squat: `${head(84, 32)}<path d="M84 44l-12 30M72 74h36M72 74l-20 26M108 74l18 26M64 55l-18 20M99 55l26 12" ${common}/>`,
+    goblet: `${head(86, 30)}<rect x="74" y="49" width="24" height="24" rx="6" fill="#e4f1eb" stroke="${accent}" stroke-width="4"/><path d="M86 44l-12 30M74 74h34M74 74l-20 26M108 74l18 26M74 58l-14-4M98 58l14-4" ${common}/>`,
+    split_squat: `${head(83, 30)}<path d="M83 42l-8 34M75 76l-28 18M75 76l40 12M47 94l-10 14M115 88l18 16M70 55l-22 8M94 56l24 6" ${common}/>`,
+    lunge: `${head(84, 28)}<path d="M84 40l-10 34M74 74l-32 16M74 74l45 4M42 90l-14 18M119 78l22 22M70 56l-26 4M94 55l28 12" ${common}/>`,
+    hinge: `${head(76, 36)}<path d="M82 45l38 28M119 73l-10 31M119 73l31 31M91 61l-32 2M94 60l-12 28" ${common}/>`,
+    hinge_weight: `${head(76, 34)}<path d="M82 45l38 28M119 73l-10 31M119 73l31 31M91 61l-32 2M94 60l-12 28" ${common}/>${dumbbell}`,
+    cable_hinge: `<path d="M34 22v84M34 40h24M34 88h24" ${thin}/>${head(86, 35)}<path d="M90 46l30 28M120 74l-8 30M120 74l30 30M96 58l-38 24" ${common}/><path d="M58 82L34 68" ${accentLine}/>`,
+    bridge: `${head(46, 75)}<path d="M56 78l34-24l42 24M88 55l12 48M132 78l18 25M54 80l-20 22" ${common}/><path d="M72 98h48" ${accentLine}/>`,
+    side_lying: `${head(42, 79)}<path d="M54 82h60M72 84l-24 18M94 82l42-20M114 82l38 22" ${common}/><path d="M92 68l42-26" ${accentLine}/>`,
+    supine: `${head(50, 76)}<path d="M60 78h58M78 76l-14-30M98 76l28-28M88 78l-14 28M110 78l32 20" ${common}/>`,
+    prone: `${head(42, 72)}<path d="M54 76h66M74 76l-30 22M112 76l30 22M74 70l-28-20M110 70l28-20" ${common}/>`,
+    quadruped: `${head(50, 55)}<path d="M62 62h56M78 62l-28 34M104 62l30 34M118 62l32-20M62 62l-22-20" ${common}/><path d="M118 62l34-30" ${accentLine}/>`,
+    plank: `${head(42, 65)}<path d="M54 68h78M70 68l-22 34M132 68l32 34M48 102h28" ${common}/>`,
+    side_plank: `${head(48, 62)}<path d="M58 66l64 18M78 72l-20 30M122 84l34 18M86 58l28-22" ${common}/><path d="M58 102h24" ${accentLine}/>`,
+    wall: `<path d="M38 22v86" ${thin}/>${head(78, 32)}<path d="M78 44v36M78 52l-28-20M78 52l28-20M78 80l-18 24M78 80l18 24" ${common}/><path d="M50 34v34M106 34v34" ${accentLine}/>`,
+    doorway: `<path d="M42 22v86M122 22v86M42 22h80" ${thin}/>${head(82, 44)}<path d="M82 56v34M82 60H52M82 60h30M82 90l-18 18M82 90l22 18" ${common}/>`,
+    step: `<rect x="90" y="85" width="56" height="20" rx="4" fill="#e4f1eb" stroke="${accent}" stroke-width="4"/>${head(74, 28)}<path d="M74 40l8 32M82 72l34 14M82 72l-24 32M116 86l18-1M66 54l-28 12M86 54l26 12" ${common}/>`,
+    calf_raise: `${head(86, 27)}<path d="M86 39v40M70 58h32M86 79l-18 26M86 79l20 26M68 105h24M106 105h24" ${common}/><path d="M66 103q12-8 28 0M104 103q12-8 28 0" ${accentLine}/>`,
+    mountain: `${head(42, 60)}<path d="M54 66h70M70 66l-22 36M122 66l30 36M88 66l28 26M116 92l-20 12" ${common}/><path d="M82 82l36 8" ${accentLine}/>`,
+    machine: `<rect x="34" y="38" width="42" height="58" rx="6" fill="#edf1ed" stroke="${accent}" stroke-width="4"/><path d="M112 38v68M104 106h46" ${thin}/>${head(90, 42)}<path d="M90 54l14 28M104 82h36M104 82l-32 24M112 82l34 20" ${common}/>`,
+    cable_stand: `<path d="M36 22v86M36 36h28M36 94h28" ${thin}/>${head(94, 30)}<path d="M94 42v38M80 58h28M94 80l-18 26M94 80l42 12" ${common}/><path d="M136 92L36 66" ${accentLine}/>`,
+    row: `<rect x="44" y="92" width="74" height="12" rx="4" fill="#e4f1eb" stroke="${accent}" stroke-width="4"/>${head(84, 46)}<path d="M88 58l28 24M116 82l-18 20M116 82l38 18M92 64l-36 8" ${common}/><path d="M56 72H32" ${accentLine}/>`,
+    bench_row: `<rect x="50" y="58" width="84" height="16" rx="5" fill="#e4f1eb" stroke="${accent}" stroke-width="4"/>${head(58, 42)}<path d="M68 52h66M88 72l-18 30M116 72l26 30M100 72l-4 24" ${common}/><path d="M96 96h28" ${thin}/>`,
+    pulldown: `<path d="M44 24h92M90 24v20" ${thin}/>${head(90, 52)}<path d="M90 64v34M90 66l-36-28M90 66l36-28M90 98l-20 18M90 98l22 18" ${common}/><path d="M54 38h72" ${accentLine}/>`,
+    face_pull: `<path d="M34 26v82M34 42h24" ${thin}/>${head(98, 48)}<path d="M98 60v34M98 66l-38-18M98 66l-30 0M98 94l-18 18M98 94l22 18" ${common}/><path d="M60 48L34 52" ${accentLine}/>`,
+    leg_press: `<rect x="96" y="36" width="44" height="62" rx="6" fill="#e4f1eb" stroke="${accent}" stroke-width="4"/>${head(50, 70)}<path d="M60 74l42-20M86 58l18 32M104 90l32 4M70 78l-28 26M58 78l-18 0" ${common}/>`,
+    back_extension: `<rect x="58" y="82" width="82" height="14" rx="5" fill="#e4f1eb" stroke="${accent}" stroke-width="4"/>${head(62, 50)}<path d="M72 58l46 26M86 66l-32 36M118 84l30 20M84 62l-28 2" ${common}/>`,
+    pallof: `<path d="M34 24v84M34 54h28" ${thin}/>${head(94, 30)}<path d="M94 42v38M94 58h42M94 80l-18 26M94 80l20 26" ${common}/><path d="M62 54h74" ${accentLine}/>`,
+    treadmill: `<rect x="38" y="92" width="102" height="16" rx="8" fill="#e4f1eb" stroke="${accent}" stroke-width="4"/><path d="M124 92l18-52" ${thin}/>${head(84, 30)}<path d="M84 42l-10 34M74 76l-28 20M74 76l36 22M76 56l-28 8M88 56l28 8" ${common}/>`,
+    sled: `<path d="M104 86h46M112 86l-20 20M150 86l-18 20" ${thin}/>${head(70, 40)}<path d="M78 50l30 34M108 84l-28 24M108 84l44 10M88 62l40-18" ${common}/><path d="M128 44l22 42" ${accentLine}/>`,
+  };
+
+  return poses[pose] || poses.standing;
 }
 
 function renderRoutineBlock(type) {
