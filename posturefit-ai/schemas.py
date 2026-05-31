@@ -94,3 +94,20 @@ class WorkoutLogOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class AgentRunRequest(BaseModel):
+    user_id: int
+    message: str
+    intent: Optional[str] = None
+    weekly_frequency: int = Field(default=3, ge=1, le=7)
+    session_minutes: int = Field(default=30, ge=15, le=90)
+    scenario: str = "home"
+    home_sessions: int = Field(default=0, ge=0, le=7)
+    home_minutes: int = Field(default=30, ge=15, le=90)
+    gym_sessions: int = Field(default=0, ge=0, le=7)
+    gym_minutes: int = Field(default=45, ge=15, le=90)
+    available_equipment: Optional[str] = ""
+    diet_preference: Optional[str] = ""
+    training_experience: Optional[str] = ""
+    injuries: Optional[str] = ""

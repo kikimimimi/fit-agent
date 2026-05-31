@@ -624,6 +624,48 @@ button:disabled {
   border-left: 5px solid var(--gold);
 }
 
+.plan-section-title {
+  margin: 14px 0 8px;
+  color: #333941;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.routine-block {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.routine-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px 12px;
+  padding: 11px 12px;
+  border: 1px solid #dfe6e1;
+  border-radius: 8px;
+  background: #f7faf8;
+}
+
+.routine-row strong {
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.routine-row span {
+  color: #193b32;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.routine-row p {
+  grid-column: 1 / -1;
+  margin-bottom: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.38;
+}
+
 .exercise-row {
   display: grid;
   grid-template-columns: 1.4fr 90px 160px auto;

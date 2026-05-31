@@ -29,6 +29,33 @@ class User(Base):
 
     plans = relationship("Plan", back_populates="user")
     workout_logs = relationship("WorkoutLog", back_populates="user")
+    profile = relationship("UserProfile", back_populates="user", uselist=False)
+    chat_sessions = relationship("ChatSession", back_populates="user")
+    memories = relationship("AgentMemory", back_populates="user")
+    feedback_logs = relationship("FeedbackLog", back_populates="user")
+    llm_call_logs = relationship("LLMCallLog", back_populates="user")
+
+
+class UserProfile(Base):
+    __tablename__ = "user_profiles"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True, index=True)
+    age = Column(Integer, nullable=True)
+    gender = Column(String(40), nullable=True)
+    height_cm = Column(Float, nullable=True)
+    weight_kg = Column(Float, nullable=True)
+    fitness_goal = Column(String(120), nullable=True)
+    training_level = Column(String(40), nullable=True)
+    weekly_frequency = Column(Integer, nullable=True)
+    available_equipment = Column(Text, default="")
+    injuries = Column(Text, default="")
+    diet_preference = Column(Text, default="")
+    training_experience = Column(Text, default="")
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user = relationship("User", back_populates="profile")
 
 
 class Plan(Base):
@@ -51,6 +78,21 @@ class Plan(Base):
     user = relationship("User", back_populates="plans")
     days = relationship("PlanDay", back_populates="plan", cascade="all, delete-orphan")
     workout_logs = relationship("WorkoutLog", back_populates="plan")
+
+
+class WorkoutPlan(Base):
+    __tablename__ = "workout_plans"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    source_plan_id = Column(Integer, ForeignKey("plans.id"), nullable=True)
+    status = Column(String(40), nullable=False, default="draft")
+    goal = Column(String(120), nullable=False)
+    plan_json = Column(Text, nullable=False)
+    safety_review_json = Column(Text, default="{}")
+    created_by_agent = Column(String(80), default="workout_planner")
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
 class PlanDay(Base):
@@ -97,6 +139,71 @@ class WorkoutLog(Base):
 
     user = relationship("User", back_populates="workout_logs")
     plan = relationship("Plan", back_populates="workout_logs")
+
+
+class ChatSession(Base):
+    __tablename__ = "chat_sessions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    title = Column(String(160), nullable=False, default="FitAgent session")
+    channel = Column(String(40), nullable=False, default="web")
+    status = Column(String(40), nullable=False, default="active")
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user = relationship("User", back_populates="chat_sessions")
+
+
+class AgentMemory(Base):
+    __tablename__ = "agent_memory"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    memory_type = Column(String(60), nullable=False)
+    key = Column(String(120), nullable=False)
+    value = Column(Text, nullable=False)
+    confidence = Column(Float, nullable=False, default=1.0)
+    source = Column(String(80), nullable=False, default="agent_workflow")
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user = relationship("User", back_populates="memories")
+
+
+class FeedbackLog(Base):
+    __tablename__ = "feedback_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    plan_id = Column(Integer, ForeignKey("plans.id"), nullable=True)
+    rating = Column(Integer, nullable=True)
+    energy_level = Column(String(40), nullable=True)
+    soreness_level = Column(String(40), nullable=True)
+    feedback_text = Column(Text, default="")
+    agent_action = Column(Text, default="")
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="feedback_logs")
+
+
+class LLMCallLog(Base):
+    __tablename__ = "llm_call_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    session_id = Column(Integer, ForeignKey("chat_sessions.id"), nullable=True)
+    provider = Column(String(80), nullable=False, default="local_mock")
+    model = Column(String(120), nullable=False, default="rule_based_agent")
+    prompt_type = Column(String(80), nullable=False)
+    prompt_tokens = Column(Integer, nullable=False, default=0)
+    completion_tokens = Column(Integer, nullable=False, default=0)
+    latency_ms = Column(Integer, nullable=False, default=0)
+    status = Column(String(40), nullable=False, default="success")
+    error_message = Column(Text, default="")
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="llm_call_logs")
 
 
 def init_db() -> None:

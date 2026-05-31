@@ -7,13 +7,24 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 
+from agents import OrchestratorAgent
 from agent import build_agent_summary
-from database import Plan, PlanDay, PlanExercise, User, WorkoutLog, get_db, init_db
+from database import LLMCallLog, Plan, PlanDay, PlanExercise, User, UserProfile, WorkoutLog, get_db, init_db
 from recommendation_engine import generate_recommendation
-from schemas import DISCLAIMER, GeneratePlanRequest, PlanOut, PlanUpdate, UserCreate, UserOut, WorkoutLogCreate, WorkoutLogOut
+from schemas import (
+    DISCLAIMER,
+    AgentRunRequest,
+    GeneratePlanRequest,
+    PlanOut,
+    PlanUpdate,
+    UserCreate,
+    UserOut,
+    WorkoutLogCreate,
+    WorkoutLogOut,
+)
 
 
-app = FastAPI(title="PostureFit AI", version="0.1.0")
+app = FastAPI(title="FitAgent", version="0.1.0")
 BASE_DIR = Path(__file__).resolve().parent
 FRONTEND_DIR = BASE_DIR / "frontend"
 
@@ -39,13 +50,26 @@ def index():
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "service": "PostureFit AI"}
+    return {"status": "ok", "service": "FitAgent"}
 
 
 @app.post("/api/users", response_model=UserOut)
 def create_user(payload: UserCreate, db: Session = Depends(get_db)):
     user = User(**payload.model_dump())
     db.add(user)
+    db.flush()
+    db.add(
+        UserProfile(
+            user_id=user.id,
+            age=user.age,
+            gender=user.sex,
+            height_cm=user.height_cm,
+            weight_kg=user.weight_kg,
+            fitness_goal=user.goal,
+            training_level=user.fitness_level,
+            injuries=user.injury_notes,
+        )
+    )
     db.commit()
     db.refresh(user)
     return user
@@ -95,6 +119,39 @@ def generate_plan(payload: GeneratePlanRequest, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(plan)
     return _plan_to_response(plan)
+
+
+@app.post("/api/agent/run")
+def run_agent_workflow(payload: AgentRunRequest, db: Session = Depends(get_db)):
+    user = db.get(User, payload.user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    agent_payload = payload.model_dump()
+    schedule = _schedule_from_agent_payload(payload)
+    if schedule:
+        agent_payload["schedule"] = schedule
+        agent_payload["scenario"] = "mixed" if len(schedule) > 1 else schedule[0]["scenario"]
+
+    logs = (
+        db.query(WorkoutLog)
+        .filter(WorkoutLog.user_id == user.id)
+        .order_by(WorkoutLog.completed_at.desc())
+        .limit(14)
+        .all()
+    )
+    response = OrchestratorAgent(db).run(user, agent_payload, workout_logs=logs)
+    db.add(
+        LLMCallLog(
+            user_id=user.id,
+            provider="local_mock",
+            model="fitagent_rule_orchestrator",
+            prompt_type=response["intent"],
+            status="success",
+        )
+    )
+    db.commit()
+    return response
 
 
 @app.get("/api/plans/{plan_id}", response_model=PlanOut)
@@ -197,6 +254,22 @@ def _schedule_from_payload(payload: GeneratePlanRequest) -> list[dict] | None:
                 "session_minutes": payload.gym_minutes,
             }
         )
+    return schedule
+
+
+def _schedule_from_agent_payload(payload: AgentRunRequest) -> list[dict] | None:
+    if payload.home_sessions == 0 and payload.gym_sessions == 0:
+        return None
+
+    total_sessions = payload.home_sessions + payload.gym_sessions
+    if total_sessions != payload.weekly_frequency:
+        raise HTTPException(status_code=400, detail="weekly_frequency must equal home_sessions + gym_sessions")
+
+    schedule = []
+    if payload.home_sessions:
+        schedule.append({"scenario": "home", "sessions": payload.home_sessions, "session_minutes": payload.home_minutes})
+    if payload.gym_sessions:
+        schedule.append({"scenario": "gym", "sessions": payload.gym_sessions, "session_minutes": payload.gym_minutes})
     return schedule
 
 

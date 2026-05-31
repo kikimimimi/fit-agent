@@ -130,7 +130,10 @@ const translations = {
     weeklyPlanHint: "Edit exercises, sets, reps, and rest time directly in the plan.",
     history: "History",
     warmup: "Warmup",
+    warmupActions: "Warmup Actions",
+    mainTraining: "Main Training",
     cooldown: "Cooldown",
+    cooldownActions: "Cooldown Actions",
     safety: "Safety",
     markCompleted: "Mark as Completed",
     noLogs: "No completed workouts yet.",
@@ -209,7 +212,10 @@ const translations = {
     weeklyPlanHint: "可以直接修改计划中的动作、组数、次数和休息时间。",
     history: "历史记录",
     warmup: "热身",
+    warmupActions: "热身动作",
+    mainTraining: "正式训练",
     cooldown: "放松",
+    cooldownActions: "最后放松动作",
     safety: "安全提示",
     markCompleted: "标记完成",
     noLogs: "还没有完成记录。",
@@ -265,6 +271,216 @@ const termTranslations = {
   "strength training": "力量训练",
   "cardio intervals": "有氧间歇",
   "training consistency": "训练频率与坚持",
+  "shoulder stability": "肩部稳定",
+  foundation: "基础训练",
+  home: "居家",
+  gym: "健身房",
+};
+
+const exerciseTranslations = {
+  "Glute Bridge": {
+    name: "臀桥",
+    instruction: "脚跟发力向上顶髋，在最高点短暂停留，注意不要塌腰。",
+    safety: "如果出现明显腰痛，请停止动作。",
+  },
+  Clamshell: {
+    name: "蚌式开合",
+    instruction: "保持骨盆叠放稳定，打开上侧膝盖时不要让身体向后滚。",
+    safety: "使用小而无痛的活动范围。",
+  },
+  "Side-Lying Hip Abduction": {
+    name: "侧卧髋外展",
+    instruction: "上侧腿略微向身体后方抬起，脚尖保持朝前。",
+    safety: "避免髋前侧出现夹挤感。",
+  },
+  "Bodyweight Squat": {
+    name: "自重深蹲",
+    instruction: "臀部向后向下坐，膝盖沿脚尖方向稳定移动。",
+    safety: "深度以自己能稳定控制为准。",
+  },
+  "Wall Angel": {
+    name: "靠墙天使",
+    instruction: "肋骨下沉，手臂沿墙面在舒适范围内上下滑动。",
+    safety: "不要强行追求肩部活动幅度。",
+  },
+  "Bird Dog": {
+    name: "鸟狗式",
+    instruction: "对侧手脚伸出，同时保持骨盆水平和躯干稳定。",
+    safety: "慢速完成，颈部保持放松。",
+  },
+  "Dead Bug": {
+    name: "死虫式",
+    instruction: "腰背轻轻贴向地面，对侧手脚缓慢移动。",
+    safety: "如果腰部拱起，就缩小动作幅度。",
+  },
+  Plank: {
+    name: "平板支撑",
+    instruction: "从肩到脚踝保持一条直线，并持续稳定呼吸。",
+    safety: "动作变形前就结束这一组。",
+  },
+  "Side Plank": {
+    name: "侧平板支撑",
+    instruction: "肩、髋叠放，抬起骨盆并保持身体侧线稳定。",
+    safety: "需要时可以改成屈膝版本。",
+  },
+  "Hip Flexor Stretch": {
+    name: "髋屈肌拉伸",
+    instruction: "轻轻收骨盆，再向前移动到髋前侧有拉伸感。",
+    safety: "避免通过塌腰来增加幅度。",
+  },
+  "Doorway Chest Stretch": {
+    name: "门框胸肌拉伸",
+    instruction: "前臂扶在门框上，身体轻轻向前移动。",
+    safety: "保持温和拉伸，不要拉到疼痛。",
+  },
+  "Reverse Snow Angel": {
+    name: "俯卧反向雪天使",
+    instruction: "俯卧后手臂缓慢划弧，肩膀远离耳朵。",
+    safety: "肩部紧张时缩小动作范围。",
+  },
+  "Step-Up": {
+    name: "台阶上步",
+    instruction: "整只脚踩稳发力，下降阶段慢慢控制。",
+    safety: "先使用较低台阶。",
+  },
+  "Split Squat": {
+    name: "分腿蹲",
+    instruction: "身体垂直下降，前侧膝盖稳定朝脚尖方向移动。",
+    safety: "需要平衡时扶墙完成。",
+  },
+  "Bodyweight Good Morning": {
+    name: "自重早安式",
+    instruction: "从髋部折叠，脊柱保持延展，再收紧臀部站起。",
+    safety: "只做到能轻松控制的幅度。",
+  },
+  "Calf Raise": {
+    name: "提踵",
+    instruction: "通过大脚趾根部发力抬高脚跟，再慢慢下降。",
+    safety: "可以扶墙保持平衡。",
+  },
+  "Slow Mountain Climber": {
+    name: "慢速登山者",
+    instruction: "膝盖向胸口移动，避免髋部上下弹动。",
+    safety: "手腕或腰背不适时放慢速度。",
+  },
+  "Glute Bridge March": {
+    name: "臀桥交替抬腿",
+    instruction: "保持臀桥姿势，交替抬脚时骨盆不要下沉。",
+    safety: "动作变形时退回普通臀桥。",
+  },
+  "Hip Abduction Machine": {
+    name: "坐姿髋外展器械",
+    instruction: "有控制地打开双膝，短暂停顿后慢慢回位。",
+    safety: "选择不会造成髋部夹挤的重量。",
+  },
+  "Cable Hip Abduction": {
+    name: "绳索髋外展",
+    instruction: "站直后将训练腿向身体外侧略后方移动。",
+    safety: "避免身体倾斜或甩腿借力。",
+  },
+  "Romanian Deadlift": {
+    name: "罗马尼亚硬拉",
+    instruction: "从髋部折叠，重量贴近腿部移动。",
+    safety: "脊柱保持中立，负重从保守重量开始。",
+  },
+  "Seated Row": {
+    name: "坐姿划船",
+    instruction: "手肘向后拉，轻轻夹紧肩胛骨。",
+    safety: "避免耸肩代偿。",
+  },
+  "Lat Pulldown": {
+    name: "高位下拉",
+    instruction: "肋骨下沉，将横杆拉向上胸位置。",
+    safety: "不要做颈后下拉。",
+  },
+  "Face Pull": {
+    name: "面拉",
+    instruction: "绳索拉向眼睛高度，手肘抬高，手腕放松。",
+    safety: "使用轻重量并保持动作顺滑。",
+  },
+  "Leg Press": {
+    name: "腿举",
+    instruction: "整只脚发力推起，膝盖稳定朝脚尖方向移动。",
+    safety: "顶端不要用力锁死膝盖。",
+  },
+  "Goblet Squat": {
+    name: "高脚杯深蹲",
+    instruction: "将重量抱在胸前，深蹲时保持膝盖稳定。",
+    safety: "选择能保持姿态稳定的重量。",
+  },
+  "Cable Pull Through": {
+    name: "绳索髋拉",
+    instruction: "向后做髋铰链，再通过收紧臀部站直。",
+    safety: "不要把它做成深蹲。",
+  },
+  "Back Extension": {
+    name: "背伸展",
+    instruction: "从髋部发力完成动作，顶端保持脊柱自然延展。",
+    safety: "不要过度后仰腰椎。",
+  },
+  "Chest-Supported Row": {
+    name: "胸托划船",
+    instruction: "胸部贴稳长凳，手肘朝髋部方向拉。",
+    safety: "颈部保持放松。",
+  },
+  "Pallof Press": {
+    name: "帕洛夫抗旋推",
+    instruction: "双手向前推出，同时抵抗躯干旋转。",
+    safety: "先使用轻阻力。",
+  },
+  "Incline Walk": {
+    name: "坡度走",
+    instruction: "用呼吸加快但仍可控制的速度行走。",
+    safety: "只有需要平衡时才扶扶手。",
+  },
+  "Sled Push": {
+    name: "推雪橇",
+    instruction: "保持稳定躯干角度，用短而有力的步伐推动。",
+    safety: "确认空间安全，并使用保守负重。",
+  },
+};
+
+const routineActions = {
+  warmup: [
+    {
+      name: "Breathing Reset",
+      zhName: "呼吸重置",
+      sets: "1",
+      duration: "60 sec",
+      zhDuration: "60 秒",
+      instruction: "Stand tall or lie down, breathe through the nose, and let the ribs expand evenly.",
+      zhInstruction: "站姿或仰卧，用鼻吸气，让肋骨均匀打开。",
+    },
+    {
+      name: "Joint Mobility Flow",
+      zhName: "关节活动流",
+      sets: "1",
+      duration: "2 min",
+      zhDuration: "2 分钟",
+      instruction: "Move shoulders, hips, knees, and ankles slowly through a comfortable range.",
+      zhInstruction: "缓慢活动肩、髋、膝、踝，范围保持舒适。",
+    },
+  ],
+  cooldown: [
+    {
+      name: "Target Area Stretch",
+      zhName: "目标区域拉伸",
+      sets: "1",
+      duration: "45 sec each side",
+      zhDuration: "每侧 45 秒",
+      instruction: "Stretch the main area trained today with slow breathing and no bouncing.",
+      zhInstruction: "拉伸当天主要训练区域，配合慢呼吸，不要弹振。",
+    },
+    {
+      name: "Relaxed Breathing",
+      zhName: "放松呼吸",
+      sets: "1",
+      duration: "90 sec",
+      zhDuration: "90 秒",
+      instruction: "Lower the heart rate with easy nasal breathing and relaxed shoulders.",
+      zhInstruction: "用轻松鼻呼吸降低心率，同时放松肩颈。",
+    },
+  ],
 };
 
 async function request(path, options = {}) {
@@ -463,9 +679,12 @@ function renderWeeklyPlan(days) {
     card.className = "day-card";
     card.innerHTML = `
       <h3>${localizeDayTitle(day.title, day.day_number)}</h3>
-      <p><strong>${t("warmup")}:</strong> ${localizeWarmup(day.warmup)}</p>
+      <p><strong>${labelWithColon(t("warmup"))}</strong> ${localizeWarmup(day.warmup)}</p>
+      ${renderRoutineBlock("warmup")}
+      <h4 class="plan-section-title">${t("mainTraining")}</h4>
       <div class="exercise-list"></div>
-      <p><strong>${t("cooldown")}:</strong> ${localizeCooldown(day.cooldown)}</p>
+      <p><strong>${labelWithColon(t("cooldown"))}</strong> ${localizeCooldown(day.cooldown)}</p>
+      ${renderRoutineBlock("cooldown")}
       <button class="complete" data-day="${day.day_number}">${t("markCompleted")}</button>
     `;
     const list = card.querySelector(".exercise-list");
@@ -480,11 +699,11 @@ function exerciseEditor(exercise, dayIndex, exerciseIndex) {
   const row = document.createElement("div");
   row.className = "exercise-row";
   row.innerHTML = `
-    <input aria-label="Exercise name" value="${escapeAttr(exercise.name)}" data-field="name" />
+    <input aria-label="Exercise name" value="${escapeAttr(localizeExerciseName(exercise.name))}" data-field="name" />
     <input aria-label="Sets" value="${escapeAttr(exercise.sets)}" data-field="sets" />
-    <input aria-label="Reps or duration" value="${escapeAttr(exercise.reps_or_duration)}" data-field="reps_or_duration" />
+    <input aria-label="Reps or duration" value="${escapeAttr(localizeRepsOrDuration(exercise.reps_or_duration))}" data-field="reps_or_duration" />
     <input aria-label="Rest seconds" type="number" value="${exercise.rest_seconds}" data-field="rest_seconds" />
-    <div class="exercise-meta">${exercise.instruction}<br />${t("safety")}: ${exercise.safety_note}</div>
+    <div class="exercise-meta">${escapeHtml(localizeExerciseInstruction(exercise))}<br />${labelWithColon(t("safety"))} ${escapeHtml(localizeExerciseSafety(exercise))}</div>
   `;
   row.querySelectorAll("input").forEach((input) => {
     input.addEventListener("input", () => {
@@ -494,6 +713,28 @@ function exerciseEditor(exercise, dayIndex, exerciseIndex) {
     });
   });
   return row;
+}
+
+function renderRoutineBlock(type) {
+  const title = type === "warmup" ? t("warmupActions") : t("cooldownActions");
+  const actions = routineActions[type] || [];
+  return `
+    <div class="routine-block ${type}">
+      <h4 class="plan-section-title">${title}</h4>
+      ${actions.map(renderRoutineAction).join("")}
+    </div>
+  `;
+}
+
+function renderRoutineAction(action) {
+  const isZh = currentLanguage === "zh";
+  return `
+    <div class="routine-row">
+      <strong>${isZh ? action.zhName : action.name}</strong>
+      <span>${action.sets} x ${isZh ? action.zhDuration : action.duration}</span>
+      <p>${isZh ? action.zhInstruction : action.instruction}</p>
+    </div>
+  `;
 }
 
 async function savePlan() {
@@ -735,6 +976,18 @@ function escapeAttr(value) {
   return String(value).replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;");
 }
 
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+
+function labelWithColon(label) {
+  return `${label}${currentLanguage === "zh" ? "：" : ":"}`;
+}
+
 function t(key) {
   if (Object.prototype.hasOwnProperty.call(translations[currentLanguage], key)) {
     return translations[currentLanguage][key];
@@ -748,6 +1001,34 @@ function t(key) {
 function localizeTerm(term) {
   if (currentLanguage !== "zh") return term;
   return termTranslations[String(term).toLowerCase()] || term;
+}
+
+function localizeExerciseName(name) {
+  if (currentLanguage !== "zh") return name;
+  return exerciseTranslations[name]?.name || name;
+}
+
+function localizeExerciseInstruction(exercise) {
+  if (currentLanguage !== "zh") return exercise.instruction;
+  return exerciseTranslations[exercise.name]?.instruction || exercise.instruction;
+}
+
+function localizeExerciseSafety(exercise) {
+  if (currentLanguage !== "zh") return exercise.safety_note;
+  return exerciseTranslations[exercise.name]?.safety || exercise.safety_note;
+}
+
+function localizeRepsOrDuration(value) {
+  if (currentLanguage !== "zh") return value;
+  return String(value)
+    .replace(/slow reps/gi, "慢速次")
+    .replace(/reps each side/gi, "次/侧")
+    .replace(/rep each side/gi, "次/侧")
+    .replace(/reps/gi, "次")
+    .replace(/sec each side/gi, "秒/侧")
+    .replace(/sec/gi, "秒")
+    .replace(/min/gi, "分钟")
+    .replace(/(\d)\s*m\b/gi, "$1 米");
 }
 
 function focusPhotoFor(focus) {
@@ -818,8 +1099,12 @@ function muscleSlugsFor(targetMuscles) {
 
 function localizeDayTitle(title, dayNumber) {
   if (currentLanguage !== "zh") return title;
-  const focus = title.includes(":") ? title.split(":").slice(1).join(":").trim().toLowerCase() : "";
-  return `第 ${dayNumber} 天：${localizeTerm(focus)}`;
+  const raw = title.includes(":") ? title.split(":").slice(1).join(":").trim() : title;
+  const parts = raw.split("-").map((part) => part.trim()).filter(Boolean);
+  if (parts.length >= 2) {
+    return `第 ${dayNumber} 天：${localizeTerm(parts[0].toLowerCase())} - ${localizeTerm(parts.slice(1).join("-").toLowerCase())}`;
+  }
+  return `第 ${dayNumber} 天：${localizeTerm(raw.toLowerCase() || "foundation")}`;
 }
 
 function localizeWarmup(warmup) {
