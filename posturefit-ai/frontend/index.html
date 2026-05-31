@@ -137,6 +137,18 @@
               <h3 data-i18n="agentSummary">Agent Summary</h3>
               <p id="agentSummary"></p>
             </section>
+            <section class="agent-card">
+              <h3 data-i18n="agentActivityTitle">Agent Activity</h3>
+              <div id="agentActivity" class="agent-activity"></div>
+            </section>
+            <section class="agent-card">
+              <h3 data-i18n="agentMemoryTitle">FitAgent Memory</h3>
+              <div id="agentMemory" class="agent-memory"></div>
+            </section>
+            <section class="agent-card">
+              <h3 data-i18n="safetyReviewTitle">Safety Review</h3>
+              <div id="safetyReview" class="safety-review"></div>
+            </section>
           </aside>
 
           <div class="result-column result-workout">
@@ -148,6 +160,26 @@
               <button id="savePlanBtn" class="secondary" disabled data-i18n="saveEdits">Save Edits</button>
             </div>
             <div id="weeklyPlan"></div>
+            <section class="feedback-panel">
+              <div class="feedback-header">
+                <div>
+                  <h3 data-i18n="feedbackTitle">Feedback & Adjust</h3>
+                  <p class="muted" data-i18n="feedbackHint">Tell FitAgent how the plan felt. The agent will remember it for the next adjustment.</p>
+                </div>
+                <button id="weeklyReviewBtn" class="secondary" type="button" data-i18n="weeklyReview">Weekly Review</button>
+              </div>
+              <div class="feedback-buttons">
+                <button type="button" class="feedback-choice" data-feedback="too_easy" data-i18n="tooEasy">Too easy</button>
+                <button type="button" class="feedback-choice" data-feedback="good" data-i18n="feltGood">Good</button>
+                <button type="button" class="feedback-choice" data-feedback="too_hard" data-i18n="tooHard">Too hard</button>
+                <button type="button" class="feedback-choice danger" data-feedback="pain" data-i18n="painDiscomfort">Pain or discomfort</button>
+              </div>
+              <textarea id="feedbackText" data-placeholder-key="feedbackPlaceholder" placeholder="Example: Day 1 felt too hard after the second exercise. Please reduce intensity next week."></textarea>
+              <div class="feedback-actions">
+                <button id="submitFeedbackBtn" class="primary" type="button" data-i18n="sendFeedback">Send Feedback</button>
+              </div>
+              <div id="agentAdjustment" class="agent-adjustment"></div>
+            </section>
             <section class="history-panel">
               <h3 data-i18n="history">History</h3>
               <div id="history"></div>

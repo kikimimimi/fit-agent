@@ -442,6 +442,148 @@ button:disabled {
   margin-top: 2px;
 }
 
+.agent-card {
+  display: grid;
+  gap: 12px;
+}
+
+.agent-activity,
+.agent-memory,
+.safety-review,
+.agent-adjustment {
+  display: grid;
+  gap: 10px;
+}
+
+.agent-step {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 10px;
+  align-items: start;
+  padding: 10px 11px;
+  border: 1px solid #dfe6e1;
+  border-radius: 8px;
+  background: #f7faf8;
+}
+
+.agent-step-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--green);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.agent-step strong,
+.memory-row strong,
+.safety-status strong {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.agent-step span,
+.memory-row span,
+.safety-status span {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.memory-row,
+.safety-status,
+.agent-adjustment {
+  padding: 11px 12px;
+  border: 1px solid #dfe6e1;
+  border-radius: 8px;
+  background: #fbfcff;
+}
+
+.memory-type {
+  display: inline-block;
+  margin-right: 7px;
+  padding: 4px 7px;
+  border-radius: 999px;
+  color: #193b32;
+  background: #e4f1eb;
+  font-size: 11px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.safety-status.low {
+  border-color: #b8d9ca;
+  background: #f2faf6;
+}
+
+.safety-status.review-needed {
+  border-color: #e2c383;
+  background: #fff9ec;
+}
+
+.safety-warning {
+  margin: 0;
+  padding-left: 18px;
+  color: #7a4b1a;
+  font-size: 13px;
+}
+
+.feedback-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.feedback-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.feedback-header p {
+  margin-bottom: 0;
+}
+
+.feedback-buttons {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.feedback-choice {
+  min-height: 42px;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  background: #fff;
+  font-size: 13px;
+}
+
+.feedback-choice.active {
+  border-color: #1d644e;
+  color: #fff;
+  background: var(--green);
+}
+
+.feedback-choice.danger.active {
+  border-color: #9b382d;
+  background: var(--coral);
+}
+
+.feedback-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.feedback-actions .primary,
+.feedback-header .secondary {
+  width: auto;
+}
+
 .hidden {
   display: none;
 }
@@ -716,11 +858,14 @@ button:disabled {
   }
 
   .result-hero,
-  .workout-header {
+  .workout-header,
+  .feedback-header {
     flex-direction: column;
   }
 
-  .workout-header .secondary {
+  .workout-header .secondary,
+  .feedback-header .secondary,
+  .feedback-actions .primary {
     width: 100%;
   }
 }
@@ -730,6 +875,7 @@ button:disabled {
   .scenario-plan-grid,
   .profile-choice-row,
   .problem-option-grid,
+  .feedback-buttons,
   .wizard-actions,
   .muscle-body-grid,
   .choice-buttons.four,

@@ -47,6 +47,7 @@ class OrchestratorAgent:
             safety = self.safety_checker.review(profile, plan, int(payload.get("weekly_frequency", 3)))
             nutrition = self.nutrition_planner.suggest(profile)
             self._remember_plan_context(user.id, message, safety)
+            memories = self._recent_memories(user.id)
             return {
                 "intent": intent,
                 "profile": profile,
@@ -68,6 +69,7 @@ class OrchestratorAgent:
             if self.memory_manager:
                 self.memory_manager.remember(user.id, "feedback", "latest_feedback", message)
                 self.db.flush()
+                memories = self._recent_memories(user.id)
             return {
                 "intent": intent,
                 "profile": profile,
@@ -90,3 +92,8 @@ class OrchestratorAgent:
         if safety.get("warnings"):
             self.memory_manager.remember(user_id, "safety", "latest_safety_warnings", "; ".join(safety["warnings"]))
         self.db.flush()
+
+    def _recent_memories(self, user_id: int) -> list[dict]:
+        if not self.memory_manager:
+            return []
+        return self.memory_manager.recent(user_id)

@@ -1,5 +1,7 @@
 let currentUser = null;
 let currentPlan = null;
+let currentAgentResult = null;
+let selectedFeedback = "";
 let currentLanguage = localStorage.getItem("posturefit-language") || "en";
 let currentStep = 0;
 let currentView = "wizard";
@@ -17,6 +19,8 @@ const progressBar = document.querySelector("#progressBar");
 const wizardCard = document.querySelector("#wizardCard");
 const resultsPanel = document.querySelector("#resultsPanel");
 const problemOptionsContainer = document.querySelector("#problemOptions");
+const submitFeedbackBtn = document.querySelector("#submitFeedbackBtn");
+const weeklyReviewBtn = document.querySelector("#weeklyReviewBtn");
 
 const problemOptionSets = {
   posture_improvement: [
@@ -126,6 +130,26 @@ const translations = {
     trainingFocus: "Training Focus",
     focusPhotoAlt: "Training focus photo",
     agentSummary: "Agent Summary",
+    agentActivityTitle: "Agent Activity",
+    agentMemoryTitle: "FitAgent Memory",
+    safetyReviewTitle: "Safety Review",
+    feedbackTitle: "Feedback & Adjust",
+    feedbackHint: "Tell FitAgent how the plan felt. The agent will remember it for the next adjustment.",
+    weeklyReview: "Weekly Review",
+    tooEasy: "Too easy",
+    feltGood: "Good",
+    tooHard: "Too hard",
+    painDiscomfort: "Pain or discomfort",
+    feedbackPlaceholder: "Example: Day 1 felt too hard after the second exercise. Please reduce intensity next week.",
+    sendFeedback: "Send Feedback",
+    sendingFeedback: "Sending...",
+    agentReviewing: "FitAgent is reviewing...",
+    feedbackSaved: "Feedback recorded. FitAgent will use it for the next adjustment.",
+    chooseFeedback: "Please choose a feedback option or write a short note.",
+    safetyLow: "Low risk",
+    safetyReviewNeeded: "Review needed",
+    noMemoryYet: "No long-term memory yet. Generate a plan or send feedback to teach FitAgent.",
+    noSafetyWarnings: "No obvious risk was found by the basic safety checker.",
     weeklyPlan: "Weekly Plan",
     weeklyPlanHint: "Edit exercises, sets, reps, and rest time directly in the plan.",
     history: "History",
@@ -208,6 +232,26 @@ const translations = {
     trainingFocus: "训练重点",
     focusPhotoAlt: "训练重点照片",
     agentSummary: "Agent 总结",
+    agentActivityTitle: "Agent 工作流",
+    agentMemoryTitle: "FitAgent 记忆",
+    safetyReviewTitle: "安全检查",
+    feedbackTitle: "反馈与调整",
+    feedbackHint: "告诉 FitAgent 这次训练感受如何，Agent 会记住并用于下次调整。",
+    weeklyReview: "生成周复盘",
+    tooEasy: "太轻松",
+    feltGood: "刚刚好",
+    tooHard: "太难",
+    painDiscomfort: "疼痛或不适",
+    feedbackPlaceholder: "例如：第 1 天第二个动作后感觉太难，下周请降低强度。",
+    sendFeedback: "发送反馈",
+    sendingFeedback: "发送中...",
+    agentReviewing: "FitAgent 正在复盘...",
+    feedbackSaved: "反馈已记录，FitAgent 会用于下次调整。",
+    chooseFeedback: "请先选择一个反馈选项，或写一段简短说明。",
+    safetyLow: "低风险",
+    safetyReviewNeeded: "需要复核",
+    noMemoryYet: "暂无长期记忆。生成计划或发送反馈后，FitAgent 会开始记住你的偏好。",
+    noSafetyWarnings: "基础安全检查未发现明显风险。",
     weeklyPlan: "每周计划",
     weeklyPlanHint: "可以直接修改计划中的动作、组数、次数和休息时间。",
     history: "历史记录",
@@ -532,6 +576,16 @@ function planPayload() {
   };
 }
 
+function agentPayload(intent = null, message = null) {
+  const payload = planPayload();
+  return {
+    ...payload,
+    intent,
+    message: message || payload.problem,
+    injuries: value("injuryNotes"),
+  };
+}
+
 async function generatePlan() {
   if (!validateCurrentStep()) return;
   generateBtn.disabled = true;
@@ -544,6 +598,10 @@ async function generatePlan() {
     currentPlan = await request("/api/generate-plan", {
       method: "POST",
       body: JSON.stringify(planPayload()),
+    });
+    currentAgentResult = await request("/api/agent/run", {
+      method: "POST",
+      body: JSON.stringify(agentPayload("generate_workout_plan")),
     });
     currentView = "results";
     renderPlan(currentPlan);
@@ -572,6 +630,141 @@ function renderPlan(plan) {
   renderTrainingFocusPhotos(plan.training_focus);
   renderChips("trainingFocus", plan.training_focus);
   renderWeeklyPlan(plan.weekly_plan);
+  renderAgentExperience(currentAgentResult, plan);
+}
+
+function renderAgentExperience(agentResult, plan) {
+  renderAgentActivity(agentResult);
+  renderAgentMemory(agentResult);
+  renderSafetyReview(agentResult);
+  renderAgentAdjustment("");
+}
+
+function renderAgentActivity(agentResult) {
+  const container = document.querySelector("#agentActivity");
+  if (!container) return;
+  const intent = agentResult?.intent || "generate_workout_plan";
+  const steps =
+    currentLanguage === "zh"
+      ? [
+          ["Profile Agent", "分析年龄、训练水平、目标、时间安排和伤病备注。"],
+          ["Memory Manager", "读取已有偏好，并写入本次最新训练请求。"],
+          ["Orchestrator", `将本次请求路由为 ${intent}。`],
+          ["Workout Planner", "基于本地动作规则生成结构化每周训练计划。"],
+          ["Safety Checker", "检查训练强度、休息日和明显伤病风险。"],
+          ["Nutrition Planner", "补充保守的饮食习惯建议和健康免责声明。"],
+        ]
+      : [
+          ["Profile Agent", "Analyzed age, training level, goal, schedule, and injury notes."],
+          ["Memory Manager", "Checked previous preferences and wrote the latest request."],
+          ["Orchestrator", `Routed this request as ${intent}.`],
+          ["Workout Planner", "Generated a structured weekly plan from the local exercise rules."],
+          ["Safety Checker", "Reviewed intensity, rest days, and obvious injury risk."],
+          ["Nutrition Planner", "Added conservative habit guidance with a health disclaimer."],
+        ];
+  container.innerHTML = steps
+    .map(
+      ([title, detail]) => `
+        <div class="agent-step">
+          <span class="agent-step-icon">✓</span>
+          <div><strong>${escapeHtml(title)}</strong><span>${escapeHtml(detail)}</span></div>
+        </div>
+      `
+    )
+    .join("");
+}
+
+function renderAgentMemory(agentResult) {
+  const container = document.querySelector("#agentMemory");
+  if (!container) return;
+  const memories = agentResult?.memory || [];
+  if (!memories.length) {
+    container.innerHTML = `<p class="muted">${t("noMemoryYet")}</p>`;
+    return;
+  }
+  container.innerHTML = memories
+    .slice(0, 5)
+    .map(
+      (item) => `
+        <div class="memory-row">
+          <strong><span class="memory-type">${escapeHtml(item.type || "memory")}</span>${escapeHtml(humanizeKey(item.key || "memory"))}</strong>
+          <span>${escapeHtml(localizeMemoryValue(item.value || ""))}</span>
+        </div>
+      `
+    )
+    .join("");
+}
+
+function renderSafetyReview(agentResult) {
+  const container = document.querySelector("#safetyReview");
+  if (!container) return;
+  const review = agentResult?.safety_review;
+  if (!review) {
+    container.innerHTML = `<p class="muted">${t("noSafetyWarnings")}</p>`;
+    return;
+  }
+  const warnings = review.warnings || [];
+  const lowRisk = review.risk_level === "low";
+  container.innerHTML = `
+    <div class="safety-status ${lowRisk ? "low" : "review-needed"}">
+      <strong>${lowRisk ? t("safetyLow") : t("safetyReviewNeeded")}</strong>
+      <span>${escapeHtml(localizeSafetyDisclaimer(review.disclaimer || ""))}</span>
+    </div>
+    ${
+      warnings.length
+        ? `<ul class="safety-warning">${warnings.map((warning) => `<li>${escapeHtml(localizeSafetyWarning(warning))}</li>`).join("")}</ul>`
+        : `<p class="muted">${t("noSafetyWarnings")}</p>`
+    }
+  `;
+}
+
+function renderAgentAdjustment(message, mode = "info") {
+  const container = document.querySelector("#agentAdjustment");
+  if (!container) return;
+  if (!message) {
+    container.innerHTML = "";
+    return;
+  }
+  container.innerHTML = `<div class="agent-adjustment ${mode}">${escapeHtml(message)}</div>`;
+}
+
+function humanizeKey(key) {
+  if (currentLanguage === "zh") {
+    const labels = {
+      latest_training_request: "最新训练请求",
+      latest_safety_warnings: "最新安全提醒",
+      latest_feedback: "最新训练反馈",
+      memory: "记忆",
+    };
+    return labels[key] || String(key).replaceAll("_", " ");
+  }
+  return String(key).replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function localizeMemoryValue(value) {
+  if (currentLanguage !== "zh") return value;
+  return String(value)
+    .replace(/Create a/gi, "生成")
+    .replace(/day home workout plan/gi, "天居家训练计划")
+    .replace(/for rounded shoulders/gi, "用于改善圆肩")
+    .replace(/The plan felt too easy/gi, "训练计划太轻松")
+    .replace(/The plan felt good/gi, "训练计划刚刚好")
+    .replace(/The plan felt too hard/gi, "训练计划太难")
+    .replace(/I felt pain or discomfort/gi, "我感到疼痛或不适");
+}
+
+function localizeSafetyDisclaimer(value) {
+  if (currentLanguage !== "zh") return value;
+  return "这是基础自动安全筛查，不等同于医学许可或专业诊断。";
+}
+
+function localizeSafetyWarning(value) {
+  if (currentLanguage !== "zh") return value;
+  return String(value)
+    .replace("Knee injury was mentioned, so high-impact or aggressive conditioning should be replaced.", "你提到了膝盖伤病，应替换高冲击或过于激烈的训练。")
+    .replace("Beginner frequency above 5 sessions per week may reduce recovery. Start with 2-4 sessions.", "新手每周训练超过 5 次可能影响恢复，建议先从每周 2-4 次开始。")
+    .replace("The weekly plan has no rest day. Add at least one recovery day.", "当前每周计划没有休息日，建议至少加入 1 天恢复日。")
+    .replace("Pain, dizziness, numbness, or sharp discomfort requires stopping exercise and consulting a professional.", "如果出现疼痛、头晕、麻木或尖锐不适，应停止训练并咨询专业人士。");
 }
 
 function renderChips(id, items) {
@@ -769,6 +962,81 @@ async function completeDay(dayNumber) {
   await renderHistory();
 }
 
+async function submitFeedback() {
+  if (!currentUser) return;
+  const feedbackText = value("feedbackText");
+  const feedbackMessage = [feedbackLabel(selectedFeedback), feedbackText].filter(Boolean).join(". ");
+  if (!feedbackMessage) {
+    renderAgentAdjustment(t("chooseFeedback"), "warning");
+    return;
+  }
+  submitFeedbackBtn.disabled = true;
+  submitFeedbackBtn.textContent = t("sendingFeedback");
+  renderAgentAdjustment(t("agentReviewing"));
+  try {
+    const result = await request("/api/agent/run", {
+      method: "POST",
+      body: JSON.stringify(agentPayload("record_feedback", feedbackMessage)),
+    });
+    currentAgentResult = { ...currentAgentResult, ...result };
+    renderAgentMemory(currentAgentResult);
+    renderAgentAdjustment(currentLanguage === "zh" ? t("feedbackSaved") : result.message || t("feedbackSaved"));
+  } catch (error) {
+    renderAgentAdjustment(error.message, "warning");
+  } finally {
+    submitFeedbackBtn.disabled = false;
+    submitFeedbackBtn.textContent = t("sendFeedback");
+  }
+}
+
+async function generateWeeklyReview() {
+  if (!currentUser) return;
+  weeklyReviewBtn.disabled = true;
+  weeklyReviewBtn.textContent = t("agentReviewing");
+  renderAgentAdjustment(t("agentReviewing"));
+  try {
+    const result = await request("/api/agent/run", {
+      method: "POST",
+      body: JSON.stringify(agentPayload("weekly_review", "Generate my weekly review")),
+    });
+    currentAgentResult = { ...currentAgentResult, ...result };
+    const review = result.progress_review;
+    const ratio = Math.round((review?.completion_ratio || 0) * 100);
+    if (currentLanguage === "zh") {
+      renderAgentAdjustment(
+        `周复盘：已完成 ${review?.completed_sessions || 0}/${review?.target_frequency || 0} 次训练（${ratio}%）。${localizeProgressRecommendation(review?.recommendation || "")}`
+      );
+    } else {
+      renderAgentAdjustment(
+        `Weekly review: ${review?.completed_sessions || 0}/${review?.target_frequency || 0} sessions completed (${ratio}%). ${review?.recommendation || ""}`
+      );
+    }
+  } catch (error) {
+    renderAgentAdjustment(error.message, "warning");
+  } finally {
+    weeklyReviewBtn.disabled = false;
+    weeklyReviewBtn.textContent = t("weeklyReview");
+  }
+}
+
+function feedbackLabel(feedback) {
+  const labels = {
+    too_easy: "The plan felt too easy",
+    good: "The plan felt good",
+    too_hard: "The plan felt too hard",
+    pain: "I felt pain or discomfort",
+  };
+  return labels[feedback] || "";
+}
+
+function localizeProgressRecommendation(value) {
+  if (currentLanguage !== "zh") return value;
+  return String(value)
+    .replace("Start with the first planned session and record how it felt.", "建议先完成第一节训练，并记录实际感受。")
+    .replace("Reduce friction: keep sessions shorter or lower weekly frequency for the next week.", "建议降低执行难度：下周缩短单次训练，或减少每周训练频率。")
+    .replace("Keep the plan stable for one more week before increasing volume.", "建议下周先保持当前计划稳定，再考虑逐步增加训练量。");
+}
+
 async function renderHistory() {
   if (!currentUser) return;
   const history = await request(`/api/workout-logs/${currentUser.id}`);
@@ -793,10 +1061,18 @@ document.addEventListener("click", (event) => {
     event.target.classList.toggle("active");
     event.target.setAttribute("aria-pressed", event.target.classList.contains("active") ? "true" : "false");
   }
+  if (event.target.matches(".feedback-choice")) {
+    selectedFeedback = event.target.dataset.feedback || "";
+    document.querySelectorAll(".feedback-choice").forEach((button) => {
+      button.classList.toggle("active", button === event.target);
+    });
+  }
 });
 
 generateBtn.addEventListener("click", generatePlan);
 savePlanBtn.addEventListener("click", savePlan);
+submitFeedbackBtn?.addEventListener("click", submitFeedback);
+weeklyReviewBtn?.addEventListener("click", generateWeeklyReview);
 editInputsBtn.addEventListener("click", () => {
   currentView = "wizard";
   applyViewMode();
