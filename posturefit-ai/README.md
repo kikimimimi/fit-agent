@@ -217,6 +217,7 @@ Future work:
 ## Documentation
 
 - [Database schema](docs/database_schema.md)
+- [中文 Agent 讲解报告](docs/agent_explanation_report_zh.md)
 - [Architecture design](docs/architecture_design.md)
 - [System design diagrams](docs/system_design_diagram.md)
 - [Business plan](docs/business_plan.md)
