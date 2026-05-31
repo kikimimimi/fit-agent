@@ -109,6 +109,31 @@
         </div>
       </section>
 
+      <section class="panel agent-preview-panel" id="agentWorkflowPreview">
+        <div class="agent-preview-header">
+          <h2 data-i18n="agentActivityTitle">Agent Activity</h2>
+          <p class="muted" data-i18n="agentPreviewHint">FitAgent works through multiple agent modules before it returns a plan.</p>
+        </div>
+        <div class="agent-preview-grid">
+          <div class="agent-step">
+            <span class="agent-step-icon">1</span>
+            <div><strong>Profile Agent</strong><span data-i18n="previewProfileAgent">Reads your profile, goal, schedule, and injury notes.</span></div>
+          </div>
+          <div class="agent-step">
+            <span class="agent-step-icon">2</span>
+            <div><strong>Memory Manager</strong><span data-i18n="previewMemoryManager">Checks what FitAgent already remembers about you.</span></div>
+          </div>
+          <div class="agent-step">
+            <span class="agent-step-icon">3</span>
+            <div><strong>Workout Planner</strong><span data-i18n="previewWorkoutPlanner">Builds a structured weekly plan with the exercise rules.</span></div>
+          </div>
+          <div class="agent-step">
+            <span class="agent-step-icon">4</span>
+            <div><strong>Safety Checker</strong><span data-i18n="previewSafetyChecker">Reviews obvious risk before the plan is shown.</span></div>
+          </div>
+        </div>
+      </section>
+
       <section class="results hidden" id="resultsPanel">
         <div id="planOutput" class="plan-output result-grid hidden">
           <aside class="result-column result-overview">

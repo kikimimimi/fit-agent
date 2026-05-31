@@ -18,6 +18,7 @@ const stepCounter = document.querySelector("#stepCounter");
 const progressBar = document.querySelector("#progressBar");
 const wizardCard = document.querySelector("#wizardCard");
 const resultsPanel = document.querySelector("#resultsPanel");
+const agentWorkflowPreview = document.querySelector("#agentWorkflowPreview");
 const problemOptionsContainer = document.querySelector("#problemOptions");
 const submitFeedbackBtn = document.querySelector("#submitFeedbackBtn");
 const weeklyReviewBtn = document.querySelector("#weeklyReviewBtn");
@@ -131,6 +132,11 @@ const translations = {
     focusPhotoAlt: "Training focus photo",
     agentSummary: "Agent Summary",
     agentActivityTitle: "Agent Activity",
+    agentPreviewHint: "FitAgent works through multiple agent modules before it returns a plan.",
+    previewProfileAgent: "Reads your profile, goal, schedule, and injury notes.",
+    previewMemoryManager: "Checks what FitAgent already remembers about you.",
+    previewWorkoutPlanner: "Builds a structured weekly plan with the exercise rules.",
+    previewSafetyChecker: "Reviews obvious risk before the plan is shown.",
     agentMemoryTitle: "FitAgent Memory",
     safetyReviewTitle: "Safety Review",
     feedbackTitle: "Feedback & Adjust",
@@ -233,6 +239,11 @@ const translations = {
     focusPhotoAlt: "训练重点照片",
     agentSummary: "Agent 总结",
     agentActivityTitle: "Agent 工作流",
+    agentPreviewHint: "FitAgent 会先通过多个 Agent 模块协作，然后再返回训练计划。",
+    previewProfileAgent: "读取你的画像、目标、时间安排和伤病备注。",
+    previewMemoryManager: "检查 FitAgent 已经记住的偏好和上下文。",
+    previewWorkoutPlanner: "基于动作规则生成结构化每周训练计划。",
+    previewSafetyChecker: "在展示计划前检查明显训练风险。",
     agentMemoryTitle: "FitAgent 记忆",
     safetyReviewTitle: "安全检查",
     feedbackTitle: "反馈与调整",
@@ -806,14 +817,6 @@ function renderMuscleMap(targetMuscles) {
   const gender = sex === "female" ? "female" : "male";
   const sexLabel = gender === "female" ? t("femaleBody") : t("maleBody");
   container.innerHTML = `
-    <div class="muscle-map-header">
-      <span>${t("muscleMapTitle")}</span>
-      <small>${t("highlightedMuscles")}</small>
-    </div>
-    <div class="muscle-subhead">
-      <span>${t("muscle2DTitle")}</span>
-      <small>${t("highlightedMuscles")}</small>
-    </div>
     <div class="anatomy-map ${gender}" data-sex-label="${sexLabel}">
       <div class="muscle-body-grid">
         ${renderBodyFigure(gender, "front", activeSlugs)}
@@ -1136,6 +1139,7 @@ function renderStep() {
 function applyViewMode() {
   const showingResults = currentView === "results";
   wizardCard.classList.toggle("hidden", showingResults);
+  agentWorkflowPreview?.classList.toggle("hidden", showingResults);
   resultsPanel.classList.toggle("hidden", !showingResults);
   document.body.classList.toggle("result-mode", showingResults);
 }
