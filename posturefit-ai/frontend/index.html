@@ -21,7 +21,7 @@
     <main class="wizard-layout">
       <section class="panel form-panel wizard-card" id="wizardCard">
         <div class="wizard-progress">
-          <span id="stepCounter">Step 1 of 4</span>
+          <span id="stepCounter">Step 1 of 3</span>
           <div class="progress-track"><span id="progressBar"></span></div>
         </div>
 
@@ -74,18 +74,28 @@
         </div>
 
         <div class="step-screen" data-step="2">
-          <h2 data-i18n="stepScenario">Step 3: Scenario</h2>
-          <div class="segmented">
-            <label><input type="radio" name="scenario" value="home" checked /> <span data-i18n="home">Home</span></label>
-            <label><input type="radio" name="scenario" value="gym" /> <span data-i18n="gym">Gym</span></label>
-          </div>
-        </div>
-
-        <div class="step-screen" data-step="3">
-          <h2 data-i18n="stepSchedule">Step 4: Schedule</h2>
-          <div class="grid two">
-            <label><span data-i18n="weeklyFrequency">Weekly Frequency</span><input id="weeklyFrequency" type="number" min="1" max="7" value="3" /></label>
-            <label><span data-i18n="sessionMinutes">Session Minutes</span><input id="sessionMinutes" type="number" min="15" max="90" value="30" /></label>
+          <h2 data-i18n="stepScenario">Step 3: Weekly Arrangement</h2>
+          <div class="scenario-plan-grid">
+            <article class="scenario-card">
+              <img src="/frontend/assets/scenarios/home-training.png" alt="Home training setup" data-alt-key="homeSceneAlt" />
+              <div class="scenario-card-body">
+                <h3 data-i18n="home">Home</h3>
+                <div class="scenario-controls">
+                  <label><span data-i18n="homeSessions">Home sessions per week</span><input id="homeSessions" type="number" min="0" max="7" value="2" /></label>
+                  <label><span data-i18n="homeMinutes">Minutes per home session</span><input id="homeMinutes" type="number" min="15" max="90" value="30" /></label>
+                </div>
+              </div>
+            </article>
+            <article class="scenario-card">
+              <img src="/frontend/assets/scenarios/gym-training.png" alt="Gym training setup" data-alt-key="gymSceneAlt" />
+              <div class="scenario-card-body">
+                <h3 data-i18n="gym">Gym</h3>
+                <div class="scenario-controls">
+                  <label><span data-i18n="gymSessions">Gym sessions per week</span><input id="gymSessions" type="number" min="0" max="7" value="1" /></label>
+                  <label><span data-i18n="gymMinutes">Minutes per gym session</span><input id="gymMinutes" type="number" min="15" max="90" value="45" /></label>
+                </div>
+              </div>
+            </article>
           </div>
           <p class="disclaimer" data-i18n="disclaimer">
             This product provides general fitness and posture-improvement guidance only. It is not a medical diagnosis or treatment plan. Users with pain, injury, chronic disease, pregnancy, or severe posture problems should consult a qualified professional.

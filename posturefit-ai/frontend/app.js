@@ -3,7 +3,7 @@ let currentPlan = null;
 let currentLanguage = localStorage.getItem("posturefit-language") || "en";
 let currentStep = 0;
 let currentView = "wizard";
-const totalSteps = 4;
+const totalSteps = 3;
 
 const apiStatus = document.querySelector("#apiStatus");
 const generateBtn = document.querySelector("#generateBtn");
@@ -96,12 +96,16 @@ const translations = {
     problemLabel: "Optional note",
     problemPlaceholder: "Optional. Add your own description, e.g. discomfort after sitting, preferred body part, or extra goal.",
     defaultProblem: "",
-    stepScenario: "Step 3: Scenario",
+    stepScenario: "Step 3: Weekly Arrangement",
     home: "Home",
     gym: "Gym",
-    stepSchedule: "Step 4: Schedule",
-    weeklyFrequency: "Weekly Frequency",
-    sessionMinutes: "Session Minutes",
+    homeSessions: "Home sessions per week",
+    homeMinutes: "Minutes per home session",
+    gymSessions: "Gym sessions per week",
+    gymMinutes: "Minutes per gym session",
+    homeSceneAlt: "Home training setup",
+    gymSceneAlt: "Gym training setup",
+    scheduleError: "Choose 1 to 7 total sessions per week. Any selected scene needs a session length between 15 and 90 minutes.",
     generatePlan: "Generate Plan",
     generating: "Generating...",
     saveEdits: "Save Edits",
@@ -171,12 +175,16 @@ const translations = {
     problemLabel: "可选备注",
     problemPlaceholder: "可选。补充自己的描述，例如久坐后不适、想重点改善的部位或额外目标。",
     defaultProblem: "",
-    stepScenario: "步骤 3：训练场景",
+    stepScenario: "步骤 3：一周训练安排",
     home: "居家",
     gym: "健身房",
-    stepSchedule: "步骤 4：训练安排",
-    weeklyFrequency: "每周训练次数",
-    sessionMinutes: "每次训练时长",
+    homeSessions: "每周居家次数",
+    homeMinutes: "每次居家时长",
+    gymSessions: "每周健身房次数",
+    gymMinutes: "每次健身房时长",
+    homeSceneAlt: "居家训练场景",
+    gymSceneAlt: "健身房训练场景",
+    scheduleError: "请选择每周总共 1 到 7 次训练；已选择的场景需要填写 15 到 90 分钟的训练时长。",
     generatePlan: "生成计划",
     generating: "生成中...",
     saveEdits: "保存修改",
@@ -294,12 +302,17 @@ function profilePayload() {
 }
 
 function planPayload() {
+  const schedule = schedulePayload();
   return {
     user_id: currentUser.id,
     problem: combinedProblemText(),
-    weekly_frequency: Number(value("weeklyFrequency")),
-    session_minutes: Number(value("sessionMinutes")),
-    scenario: document.querySelector("input[name='scenario']:checked").value,
+    weekly_frequency: schedule.weeklyFrequency,
+    session_minutes: schedule.averageMinutes,
+    scenario: schedule.scenario,
+    home_sessions: schedule.homeSessions,
+    home_minutes: schedule.homeMinutes,
+    gym_sessions: schedule.gymSessions,
+    gym_minutes: schedule.gymMinutes,
   };
 }
 
@@ -575,6 +588,9 @@ function applyLanguage() {
   document.querySelectorAll("[data-placeholder-key]").forEach((node) => {
     node.placeholder = t(node.dataset.placeholderKey);
   });
+  document.querySelectorAll("[data-alt-key]").forEach((node) => {
+    node.alt = t(node.dataset.altKey);
+  });
   languageToggle.textContent = t("switchLanguage");
   apiStatus.textContent = t("checkingApi");
   renderProblemOptions();
@@ -612,7 +628,6 @@ function validateCurrentStep() {
     ["name", "age", "height", "weight"],
     ["problem"],
     [],
-    ["weeklyFrequency", "sessionMinutes"],
   ];
   const missing =
     currentStep === 1
@@ -622,11 +637,46 @@ function validateCurrentStep() {
     alert(currentLanguage === "zh" ? "请先填写当前步骤的必填内容。" : "Please complete the required fields in this step.");
     return false;
   }
+  if (currentStep === 2 && !isScheduleValid()) {
+    alert(t("scheduleError"));
+    return false;
+  }
   return true;
 }
 
 function value(id) {
   return document.querySelector(`#${id}`).value.trim();
+}
+
+function numberValue(id) {
+  return Number(value(id) || 0);
+}
+
+function schedulePayload() {
+  const homeSessions = numberValue("homeSessions");
+  const gymSessions = numberValue("gymSessions");
+  const homeMinutes = numberValue("homeMinutes");
+  const gymMinutes = numberValue("gymMinutes");
+  const weeklyFrequency = homeSessions + gymSessions;
+  const weightedMinutes = homeSessions * homeMinutes + gymSessions * gymMinutes;
+  const averageMinutes = weeklyFrequency ? Math.round(weightedMinutes / weeklyFrequency) : 30;
+  const scenario = homeSessions > 0 && gymSessions > 0 ? "mixed" : homeSessions > 0 ? "home" : "gym";
+  return { homeSessions, homeMinutes, gymSessions, gymMinutes, weeklyFrequency, averageMinutes, scenario };
+}
+
+function isScheduleValid() {
+  const schedule = schedulePayload();
+  const sessionCountsOk =
+    Number.isInteger(schedule.homeSessions) &&
+    Number.isInteger(schedule.gymSessions) &&
+    schedule.homeSessions >= 0 &&
+    schedule.homeSessions <= 7 &&
+    schedule.gymSessions >= 0 &&
+    schedule.gymSessions <= 7;
+  const totalOk = Number.isInteger(schedule.weeklyFrequency) && schedule.weeklyFrequency >= 1 && schedule.weeklyFrequency <= 7;
+  const homeOk = schedule.homeSessions === 0 || (schedule.homeMinutes >= 15 && schedule.homeMinutes <= 90);
+  const gymOk = schedule.gymSessions === 0 || (schedule.gymMinutes >= 15 && schedule.gymMinutes <= 90);
+  return sessionCountsOk && totalOk && homeOk && gymOk;
 }
 
 function choiceValue(name) {

@@ -34,3 +34,21 @@ def test_weekly_frequency_controls_plan_days():
 def test_session_minutes_30_has_reasonable_exercise_count():
     result = generate_recommendation(user(), "rounded shoulders", 3, 30, "home")
     assert all(3 <= len(day["exercises"]) <= 5 for day in result["weekly_plan"])
+
+
+def test_mixed_schedule_uses_home_and_gym_exercises():
+    result = generate_recommendation(
+        user("intermediate"),
+        "rounded shoulders",
+        3,
+        35,
+        "mixed",
+        [
+            {"scenario": "home", "sessions": 2, "session_minutes": 30},
+            {"scenario": "gym", "sessions": 1, "session_minutes": 45},
+        ],
+    )
+    assert len(result["weekly_plan"]) == 3
+    titles = [day["title"] for day in result["weekly_plan"]]
+    assert any("Home" in title for title in titles)
+    assert any("Gym" in title for title in titles)

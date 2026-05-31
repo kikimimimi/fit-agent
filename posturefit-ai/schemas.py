@@ -36,6 +36,10 @@ class GeneratePlanRequest(BaseModel):
     weekly_frequency: int = Field(ge=1, le=7)
     session_minutes: int = Field(ge=15, le=90)
     scenario: str
+    home_sessions: int = Field(default=0, ge=0, le=7)
+    home_minutes: int = Field(default=30, ge=15, le=90)
+    gym_sessions: int = Field(default=0, ge=0, le=7)
+    gym_minutes: int = Field(default=45, ge=15, le=90)
 
 
 class ExercisePlanItem(BaseModel):

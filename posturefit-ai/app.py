@@ -71,6 +71,7 @@ def generate_plan(payload: GeneratePlanRequest, db: Session = Depends(get_db)):
             payload.weekly_frequency,
             payload.session_minutes,
             payload.scenario,
+            _schedule_from_payload(payload),
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -167,6 +168,36 @@ def _replace_plan_days(db: Session, plan: Plan, weekly_plan: list[dict]) -> None
                     sort_order=index,
                 )
             )
+
+
+def _schedule_from_payload(payload: GeneratePlanRequest) -> list[dict] | None:
+    if payload.home_sessions == 0 and payload.gym_sessions == 0:
+        return None
+
+    total_sessions = payload.home_sessions + payload.gym_sessions
+    if total_sessions != payload.weekly_frequency:
+        raise HTTPException(status_code=400, detail="weekly_frequency must equal home_sessions + gym_sessions")
+    if total_sessions < 1 or total_sessions > 7:
+        raise HTTPException(status_code=400, detail="total scheduled sessions must be between 1 and 7")
+
+    schedule = []
+    if payload.home_sessions:
+        schedule.append(
+            {
+                "scenario": "home",
+                "sessions": payload.home_sessions,
+                "session_minutes": payload.home_minutes,
+            }
+        )
+    if payload.gym_sessions:
+        schedule.append(
+            {
+                "scenario": "gym",
+                "sessions": payload.gym_sessions,
+                "session_minutes": payload.gym_minutes,
+            }
+        )
+    return schedule
 
 
 def _plan_to_response(plan: Plan) -> dict:

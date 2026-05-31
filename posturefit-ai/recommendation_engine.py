@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from itertools import cycle
-from typing import Dict, Iterable, List
+from typing import Dict, Iterable, List, Optional
 
 
 @dataclass(frozen=True)
@@ -161,17 +161,39 @@ def analyze_problem(problem: str) -> Dict[str, List[str] | str]:
     }
 
 
-def generate_recommendation(user_profile, problem: str, weekly_frequency: int, session_minutes: int, scenario: str) -> Dict:
+def generate_recommendation(
+    user_profile,
+    problem: str,
+    weekly_frequency: int,
+    session_minutes: int,
+    scenario: str,
+    schedule: Optional[List[Dict[str, int | str]]] = None,
+) -> Dict:
     scenario = scenario.lower().strip()
-    if scenario not in {"home", "gym"}:
-        raise ValueError("scenario must be home or gym")
+    if scenario not in {"home", "gym", "mixed"}:
+        raise ValueError("scenario must be home, gym, or mixed")
 
     analysis = analyze_problem(problem)
     target_muscles = analysis["target_muscles"]
     focus = analysis["training_focus"]
-    exercise_count = _exercise_count(session_minutes)
-    exercises = _select_exercises(target_muscles, scenario, getattr(user_profile, "fitness_level", "beginner"), exercise_count)
-    weekly_plan = _build_weekly_plan(exercises, weekly_frequency, exercise_count, focus)
+    if schedule:
+        weekly_plan = _build_mixed_weekly_plan(user_profile, target_muscles, schedule, focus)
+        exercises = [
+            exercise
+            for block in schedule
+            for exercise in _select_exercises(
+                target_muscles,
+                str(block["scenario"]),
+                getattr(user_profile, "fitness_level", "beginner"),
+                _exercise_count(int(block["session_minutes"])),
+            )
+        ]
+    else:
+        if scenario == "mixed":
+            raise ValueError("mixed scenario requires a session schedule")
+        exercise_count = _exercise_count(session_minutes)
+        exercises = _select_exercises(target_muscles, scenario, getattr(user_profile, "fitness_level", "beginner"), exercise_count)
+        weekly_plan = _build_weekly_plan(exercises, weekly_frequency, exercise_count, focus)
 
     return {
         "problem_analysis": analysis["problem_analysis"],
@@ -235,6 +257,56 @@ def _build_weekly_plan(exercises: List[Exercise], weekly_frequency: int, exercis
             }
         )
     return plan
+
+
+def _build_mixed_weekly_plan(user_profile, target_muscles: List[str], schedule: List[Dict[str, int | str]], focus: List[str]) -> List[Dict]:
+    plan = []
+    day_specs = _interleave_schedule(schedule)
+    exercise_cycles = {}
+    fitness_level = getattr(user_profile, "fitness_level", "beginner")
+
+    for day, spec in enumerate(day_specs, start=1):
+        scenario = str(spec["scenario"])
+        session_minutes = int(spec["session_minutes"])
+        exercise_count = _exercise_count(session_minutes)
+        if scenario not in exercise_cycles:
+            exercises = _select_exercises(target_muscles, scenario, fitness_level, exercise_count)
+            exercise_cycles[scenario] = cycle(exercises)
+        day_exercises = [next(exercise_cycles[scenario]) for _ in range(exercise_count)]
+        scenario_label = "Home" if scenario == "home" else "Gym"
+        focus_label = focus[(day - 1) % len(focus)].title() if focus else "Foundation"
+        plan.append(
+            {
+                "day_number": day,
+                "title": f"Day {day}: {scenario_label} - {focus_label}",
+                "warmup": f"5 minutes of easy movement, breathing practice, and gentle joint mobility for a {session_minutes}-minute {scenario_label.lower()} session.",
+                "exercises": [exercise_to_dict(exercise) for exercise in day_exercises],
+                "cooldown": "3-5 minutes of relaxed stretching for the areas trained today.",
+            }
+        )
+    return plan
+
+
+def _interleave_schedule(schedule: List[Dict[str, int | str]]) -> List[Dict[str, int | str]]:
+    pools = []
+    for block in schedule:
+        scenario = str(block["scenario"]).lower().strip()
+        sessions = int(block["sessions"])
+        session_minutes = int(block["session_minutes"])
+        if scenario not in {"home", "gym"}:
+            raise ValueError("scheduled scenario must be home or gym")
+        if sessions < 0:
+            raise ValueError("scheduled sessions cannot be negative")
+        pools.append([{"scenario": scenario, "session_minutes": session_minutes} for _ in range(sessions)])
+
+    output = []
+    while any(pools):
+        for pool in pools:
+            if pool:
+                output.append(pool.pop(0))
+    if not 1 <= len(output) <= 7:
+        raise ValueError("total scheduled sessions must be between 1 and 7")
+    return output
 
 
 def _exercise_count(session_minutes: int) -> int:
