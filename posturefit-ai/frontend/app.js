@@ -841,7 +841,7 @@ function renderBodyFigure(gender, side, activeSlugs) {
     .map((part) => renderBodyPart(part, activeSlugs))
     .join("");
   return `
-    <figure class="muscle-body-figure">
+    <figure class="muscle-body-figure ${gender} ${side}">
       <figcaption>${label}</figcaption>
       <svg viewBox="${viewBox}" role="img" aria-label="${sexLabelFor(gender)} ${label} ${t("muscleMapTitle")}">
         ${paths}
@@ -978,23 +978,31 @@ function poseFromExerciseName(name) {
 function exerciseSvg(exercise, pose) {
   const scene = sceneForExercise(exercise, pose);
   const body = exercisePoseMarkup(pose);
+  const cue = motionCueMarkup(pose);
   return `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 168" role="img">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 196" role="img">
       <defs>
         <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stop-color="#ffffff"/>
           <stop offset="1" stop-color="${scene.bg}"/>
         </linearGradient>
+        <filter id="softSketchShadow" x="-10%" y="-10%" width="120%" height="120%">
+          <feDropShadow dx="0" dy="2" stdDeviation="1.4" flood-color="#20242a" flood-opacity="0.12"/>
+        </filter>
+        <marker id="arrowHead" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+          <path d="M0 0L8 4L0 8Z" fill="#26735a"/>
+        </marker>
       </defs>
-      <rect width="240" height="168" rx="18" fill="url(#bg)"/>
+      <rect width="280" height="196" rx="20" fill="url(#bg)"/>
       ${scene.backdrop}
-      <path d="M22 134H218" stroke="#d8ded9" stroke-width="6" stroke-linecap="round"/>
+      <path d="M24 156H256" stroke="#d8ded9" stroke-width="7" stroke-linecap="round"/>
       <rect x="14" y="12" width="${scene.badgeWidth}" height="25" rx="12.5" fill="${scene.badgeFill}"/>
       <text x="27" y="29" fill="${scene.badgeText}" font-family="Arial, sans-serif" font-size="12" font-weight="800">${scene.badge}</text>
-      <text x="18" y="157" fill="#5f6874" font-family="Arial, sans-serif" font-size="12" font-weight="700">${escapeSvgText(scene.equipment)}</text>
-      <g transform="translate(30 22) scale(1.06)">
+      <text x="18" y="181" fill="#5f6874" font-family="Arial, sans-serif" font-size="13" font-weight="800">${escapeSvgText(scene.equipment)}</text>
+      <g transform="translate(46 32) scale(1.18)" filter="url(#softSketchShadow)">
         ${body}
       </g>
+      ${cue}
     </svg>
   `;
 }
@@ -1015,23 +1023,23 @@ function sceneForExercise(exercise, pose) {
 }
 
 function homeBackdrop(pose) {
-  const mat = `<rect x="40" y="122" width="142" height="12" rx="6" fill="#dceee5"/>`;
-  const room = `<path d="M190 34h28v38h-28z" fill="#fff" stroke="#d8ded9" stroke-width="3"/><path d="M204 34v38M190 53h28" stroke="#d8ded9" stroke-width="2"/>`;
-  const plant = `<path d="M31 116c-7-14 2-28 13-34c1 16-3 26-13 34zM31 116c7-12 18-17 30-13c-8 10-17 14-30 13z" fill="#e4f1eb" stroke="#26735a" stroke-width="2"/>`;
-  const wall = pose === "wall" ? `<path d="M42 38v86" stroke="#b38324" stroke-width="5" stroke-linecap="round"/>` : "";
-  const doorway = pose === "doorway" ? `<path d="M46 32v92M130 32v92M46 32h84" stroke="#b38324" stroke-width="5" stroke-linecap="round"/>` : "";
-  const step = pose === "step" ? `<rect x="126" y="112" width="62" height="18" rx="5" fill="#e4f1eb" stroke="#26735a" stroke-width="4"/>` : "";
+  const mat = `<rect x="48" y="143" width="166" height="13" rx="6.5" fill="#dceee5"/>`;
+  const room = `<path d="M220 38h34v44h-34z" fill="#fff" stroke="#d8ded9" stroke-width="3"/><path d="M237 38v44M220 60h34" stroke="#d8ded9" stroke-width="2"/>`;
+  const plant = `<path d="M34 135c-8-16 2-32 15-39c1 18-4 30-15 39zM34 135c8-14 21-20 35-15c-9 12-20 16-35 15z" fill="#e4f1eb" stroke="#26735a" stroke-width="2.5"/>`;
+  const wall = pose === "wall" ? `<path d="M54 42v100" stroke="#b38324" stroke-width="6" stroke-linecap="round"/>` : "";
+  const doorway = pose === "doorway" ? `<path d="M56 36v108M152 36v108M56 36h96" stroke="#b38324" stroke-width="6" stroke-linecap="round"/>` : "";
+  const step = pose === "step" ? `<rect x="154" y="131" width="70" height="21" rx="6" fill="#e4f1eb" stroke="#26735a" stroke-width="4"/>` : "";
   return `${room}${plant}${mat}${wall}${doorway}${step}`;
 }
 
 function gymBackdrop(pose) {
-  const rack = `<path d="M34 34v92M206 34v92M34 48h172" stroke="#cbd4ce" stroke-width="5" stroke-linecap="round"/>`;
-  const plates = `<circle cx="202" cy="103" r="14" fill="#edf1ed" stroke="#326da8" stroke-width="4"/><circle cx="202" cy="103" r="5" fill="#fff" stroke="#326da8" stroke-width="3"/>`;
+  const rack = `<path d="M40 38v108M240 38v108M40 56h200" stroke="#cbd4ce" stroke-width="6" stroke-linecap="round"/>`;
+  const plates = `<circle cx="238" cy="120" r="16" fill="#edf1ed" stroke="#326da8" stroke-width="4"/><circle cx="238" cy="120" r="6" fill="#fff" stroke="#326da8" stroke-width="3"/>`;
   const cable = ["cable_stand", "cable_hinge", "face_pull", "pallof", "pulldown", "row"].includes(pose)
-    ? `<path d="M38 28v102M38 45h30M38 112h30" stroke="#326da8" stroke-width="5" stroke-linecap="round"/><path d="M38 45L82 82" stroke="#5f6874" stroke-width="2"/>`
+    ? `<path d="M42 30v122M42 50h36M42 132h36" stroke="#326da8" stroke-width="6" stroke-linecap="round"/><path d="M42 50L92 96" stroke="#5f6874" stroke-width="2.5"/>`
     : "";
   const bench = ["bench_row", "back_extension"].includes(pose)
-    ? `<rect x="76" y="108" width="100" height="15" rx="5" fill="#dbeafe" stroke="#326da8" stroke-width="4"/>`
+    ? `<rect x="92" y="126" width="118" height="17" rx="6" fill="#dbeafe" stroke="#326da8" stroke-width="4"/>`
     : "";
   return `${rack}${plates}${cable}${bench}`;
 }
@@ -1087,47 +1095,82 @@ function exercisePoseMarkup(pose) {
   const stroke = "#20242a";
   const accent = "#26735a";
   const muted = "#b38324";
-  const common = `stroke="${stroke}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"`;
-  const accentLine = `stroke="${accent}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"`;
-  const thin = `stroke="${muted}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"`;
-  const head = (cx, cy) => `<circle cx="${cx}" cy="${cy}" r="10" fill="#f0c8b7" stroke="${stroke}" stroke-width="4"/>`;
-  const dumbbell = `<path d="M36 92h24M32 84v16M64 84v16" ${thin}/>`;
+  const common = `stroke="${stroke}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"`;
+  const accentLine = `stroke="${accent}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none"`;
+  const thin = `stroke="${muted}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"`;
+  const head = (cx, cy) => `<circle cx="${cx}" cy="${cy}" r="12" fill="#f0c8b7" stroke="${stroke}" stroke-width="4.5"/><path d="M${cx - 6} ${cy + 2}q6 5 12 0" stroke="${stroke}" stroke-width="2.5" stroke-linecap="round" fill="none"/>`;
+  const torso = (path) => `<path d="${path}" stroke="#26735a" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.9"/>`;
+  const dumbbell = `<path d="M36 92h28M30 83v18M70 83v18" ${thin}/>`;
 
   const poses = {
-    standing: `${head(86, 30)}<path d="M86 42v34M68 58h36M86 76l-18 26M86 76l20 26" ${common}/>`,
-    squat: `${head(84, 32)}<path d="M84 44l-12 30M72 74h36M72 74l-20 26M108 74l18 26M64 55l-18 20M99 55l26 12" ${common}/>`,
-    goblet: `${head(86, 30)}<rect x="74" y="49" width="24" height="24" rx="6" fill="#e4f1eb" stroke="${accent}" stroke-width="4"/><path d="M86 44l-12 30M74 74h34M74 74l-20 26M108 74l18 26M74 58l-14-4M98 58l14-4" ${common}/>`,
-    split_squat: `${head(83, 30)}<path d="M83 42l-8 34M75 76l-28 18M75 76l40 12M47 94l-10 14M115 88l18 16M70 55l-22 8M94 56l24 6" ${common}/>`,
-    lunge: `${head(84, 28)}<path d="M84 40l-10 34M74 74l-32 16M74 74l45 4M42 90l-14 18M119 78l22 22M70 56l-26 4M94 55l28 12" ${common}/>`,
-    hinge: `${head(76, 36)}<path d="M82 45l38 28M119 73l-10 31M119 73l31 31M91 61l-32 2M94 60l-12 28" ${common}/>`,
-    hinge_weight: `${head(76, 34)}<path d="M82 45l38 28M119 73l-10 31M119 73l31 31M91 61l-32 2M94 60l-12 28" ${common}/>${dumbbell}`,
-    cable_hinge: `<path d="M34 22v84M34 40h24M34 88h24" ${thin}/>${head(86, 35)}<path d="M90 46l30 28M120 74l-8 30M120 74l30 30M96 58l-38 24" ${common}/><path d="M58 82L34 68" ${accentLine}/>`,
-    bridge: `${head(46, 75)}<path d="M56 78l34-24l42 24M88 55l12 48M132 78l18 25M54 80l-20 22" ${common}/><path d="M72 98h48" ${accentLine}/>`,
-    side_lying: `${head(42, 79)}<path d="M54 82h60M72 84l-24 18M94 82l42-20M114 82l38 22" ${common}/><path d="M92 68l42-26" ${accentLine}/>`,
-    supine: `${head(50, 76)}<path d="M60 78h58M78 76l-14-30M98 76l28-28M88 78l-14 28M110 78l32 20" ${common}/>`,
-    prone: `${head(42, 72)}<path d="M54 76h66M74 76l-30 22M112 76l30 22M74 70l-28-20M110 70l28-20" ${common}/>`,
-    quadruped: `${head(50, 55)}<path d="M62 62h56M78 62l-28 34M104 62l30 34M118 62l32-20M62 62l-22-20" ${common}/><path d="M118 62l34-30" ${accentLine}/>`,
-    plank: `${head(42, 65)}<path d="M54 68h78M70 68l-22 34M132 68l32 34M48 102h28" ${common}/>`,
-    side_plank: `${head(48, 62)}<path d="M58 66l64 18M78 72l-20 30M122 84l34 18M86 58l28-22" ${common}/><path d="M58 102h24" ${accentLine}/>`,
-    wall: `<path d="M38 22v86" ${thin}/>${head(78, 32)}<path d="M78 44v36M78 52l-28-20M78 52l28-20M78 80l-18 24M78 80l18 24" ${common}/><path d="M50 34v34M106 34v34" ${accentLine}/>`,
-    doorway: `<path d="M42 22v86M122 22v86M42 22h80" ${thin}/>${head(82, 44)}<path d="M82 56v34M82 60H52M82 60h30M82 90l-18 18M82 90l22 18" ${common}/>`,
-    step: `<rect x="90" y="85" width="56" height="20" rx="4" fill="#e4f1eb" stroke="${accent}" stroke-width="4"/>${head(74, 28)}<path d="M74 40l8 32M82 72l34 14M82 72l-24 32M116 86l18-1M66 54l-28 12M86 54l26 12" ${common}/>`,
-    calf_raise: `${head(86, 27)}<path d="M86 39v40M70 58h32M86 79l-18 26M86 79l20 26M68 105h24M106 105h24" ${common}/><path d="M66 103q12-8 28 0M104 103q12-8 28 0" ${accentLine}/>`,
-    mountain: `${head(42, 60)}<path d="M54 66h70M70 66l-22 36M122 66l30 36M88 66l28 26M116 92l-20 12" ${common}/><path d="M82 82l36 8" ${accentLine}/>`,
-    machine: `<rect x="34" y="38" width="42" height="58" rx="6" fill="#edf1ed" stroke="${accent}" stroke-width="4"/><path d="M112 38v68M104 106h46" ${thin}/>${head(90, 42)}<path d="M90 54l14 28M104 82h36M104 82l-32 24M112 82l34 20" ${common}/>`,
-    cable_stand: `<path d="M36 22v86M36 36h28M36 94h28" ${thin}/>${head(94, 30)}<path d="M94 42v38M80 58h28M94 80l-18 26M94 80l42 12" ${common}/><path d="M136 92L36 66" ${accentLine}/>`,
-    row: `<rect x="44" y="92" width="74" height="12" rx="4" fill="#e4f1eb" stroke="${accent}" stroke-width="4"/>${head(84, 46)}<path d="M88 58l28 24M116 82l-18 20M116 82l38 18M92 64l-36 8" ${common}/><path d="M56 72H32" ${accentLine}/>`,
-    bench_row: `<rect x="50" y="58" width="84" height="16" rx="5" fill="#e4f1eb" stroke="${accent}" stroke-width="4"/>${head(58, 42)}<path d="M68 52h66M88 72l-18 30M116 72l26 30M100 72l-4 24" ${common}/><path d="M96 96h28" ${thin}/>`,
-    pulldown: `<path d="M44 24h92M90 24v20" ${thin}/>${head(90, 52)}<path d="M90 64v34M90 66l-36-28M90 66l36-28M90 98l-20 18M90 98l22 18" ${common}/><path d="M54 38h72" ${accentLine}/>`,
-    face_pull: `<path d="M34 26v82M34 42h24" ${thin}/>${head(98, 48)}<path d="M98 60v34M98 66l-38-18M98 66l-30 0M98 94l-18 18M98 94l22 18" ${common}/><path d="M60 48L34 52" ${accentLine}/>`,
-    leg_press: `<rect x="96" y="36" width="44" height="62" rx="6" fill="#e4f1eb" stroke="${accent}" stroke-width="4"/>${head(50, 70)}<path d="M60 74l42-20M86 58l18 32M104 90l32 4M70 78l-28 26M58 78l-18 0" ${common}/>`,
-    back_extension: `<rect x="58" y="82" width="82" height="14" rx="5" fill="#e4f1eb" stroke="${accent}" stroke-width="4"/>${head(62, 50)}<path d="M72 58l46 26M86 66l-32 36M118 84l30 20M84 62l-28 2" ${common}/>`,
-    pallof: `<path d="M34 24v84M34 54h28" ${thin}/>${head(94, 30)}<path d="M94 42v38M94 58h42M94 80l-18 26M94 80l20 26" ${common}/><path d="M62 54h74" ${accentLine}/>`,
-    treadmill: `<rect x="38" y="92" width="102" height="16" rx="8" fill="#e4f1eb" stroke="${accent}" stroke-width="4"/><path d="M124 92l18-52" ${thin}/>${head(84, 30)}<path d="M84 42l-10 34M74 76l-28 20M74 76l36 22M76 56l-28 8M88 56l28 8" ${common}/>`,
-    sled: `<path d="M104 86h46M112 86l-20 20M150 86l-18 20" ${thin}/>${head(70, 40)}<path d="M78 50l30 34M108 84l-28 24M108 84l44 10M88 62l40-18" ${common}/><path d="M128 44l22 42" ${accentLine}/>`,
+    standing: `${head(86, 30)}${torso("M86 44v34")}<path d="M68 58h36M86 76l-18 28M86 76l20 28" ${common}/>`,
+    squat: `${head(84, 32)}${torso("M84 46l-12 30")}<path d="M72 76h38M72 76l-22 28M110 76l20 28M64 57l-20 20M101 57l28 12" ${common}/>`,
+    goblet: `${head(86, 30)}<rect x="72" y="48" width="28" height="28" rx="7" fill="#e4f1eb" stroke="${accent}" stroke-width="5"/>${torso("M86 44l-12 32")}<path d="M74 76h36M74 76l-22 28M110 76l20 28M74 58l-16-5M98 58l16-5" ${common}/>`,
+    split_squat: `${head(83, 30)}${torso("M83 44l-8 34")}<path d="M75 78l-30 18M75 78l42 12M45 96l-11 15M117 90l20 18M70 56l-24 8M96 57l26 6" ${common}/>`,
+    lunge: `${head(84, 28)}${torso("M84 42l-10 34")}<path d="M74 76l-34 17M74 76l48 4M40 93l-15 19M122 80l24 24M70 57l-28 4M96 56l30 12" ${common}/>`,
+    hinge: `${head(76, 36)}${torso("M82 47l40 28")}<path d="M122 75l-10 31M122 75l32 31M93 62l-34 2M96 62l-13 30" ${common}/>`,
+    hinge_weight: `${head(76, 34)}${torso("M82 47l40 28")}<path d="M122 75l-10 31M122 75l32 31M93 62l-34 2M96 62l-13 30" ${common}/>${dumbbell}`,
+    cable_hinge: `<path d="M34 20v90M34 40h26M34 92h26" ${thin}/>${head(86, 35)}${torso("M90 48l32 28")}<path d="M122 76l-8 32M122 76l32 32M98 60l-40 26" ${common}/><path d="M58 86L34 70" ${accentLine}/>`,
+    bridge: `${head(46, 75)}${torso("M56 80l36-25l44 25")}<path d="M90 56l12 50M136 80l18 26M54 82l-22 24" ${common}/><path d="M72 101h50" ${accentLine}/>`,
+    side_lying: `${head(42, 79)}${torso("M54 84h62")}<path d="M72 86l-26 20M96 84l44-21M116 84l40 24" ${common}/><path d="M92 68l44-28" ${accentLine}/>`,
+    supine: `${head(50, 76)}${torso("M60 80h60")}<path d="M78 78l-15-32M100 78l30-30M88 80l-14 30M112 80l34 20" ${common}/>`,
+    prone: `${head(42, 72)}${torso("M54 78h68")}<path d="M74 78l-32 24M114 78l32 24M74 72l-30-22M112 72l30-22" ${common}/>`,
+    quadruped: `${head(50, 55)}${torso("M62 64h58")}<path d="M78 64l-30 36M106 64l32 36M120 64l34-22M62 64l-24-22" ${common}/><path d="M120 64l36-32" ${accentLine}/>`,
+    plank: `${head(42, 65)}${torso("M54 70h80")}<path d="M70 70l-24 36M134 70l34 36M46 106h30" ${common}/>`,
+    side_plank: `${head(48, 62)}${torso("M58 68l66 18")}<path d="M78 74l-22 32M124 86l36 20M86 59l30-24" ${common}/><path d="M56 106h28" ${accentLine}/>`,
+    wall: `<path d="M38 18v96" ${thin}/>${head(78, 32)}${torso("M78 46v36")}<path d="M78 54l-30-22M78 54l30-22M78 82l-20 26M78 82l20 26" ${common}/><path d="M48 34v36M108 34v36" ${accentLine}/>`,
+    doorway: `<path d="M42 18v96M126 18v96M42 18h84" ${thin}/>${head(82, 44)}${torso("M82 58v34")}<path d="M82 62H50M82 62h32M82 92l-20 20M82 92l24 20" ${common}/>`,
+    step: `<rect x="88" y="86" width="62" height="22" rx="5" fill="#e4f1eb" stroke="${accent}" stroke-width="5"/>${head(74, 28)}${torso("M74 42l8 32")}<path d="M82 74l36 15M82 74l-26 34M118 89l20-1M66 55l-30 12M88 55l28 12" ${common}/>`,
+    calf_raise: `${head(86, 27)}${torso("M86 41v40")}<path d="M70 60h34M86 81l-20 28M86 81l22 28M68 109h26M108 109h26" ${common}/><path d="M66 107q13-9 30 0M106 107q13-9 30 0" ${accentLine}/>`,
+    mountain: `${head(42, 60)}${torso("M54 68h72")}<path d="M70 68l-24 38M124 68l32 38M88 68l30 28M118 96l-22 14" ${common}/><path d="M82 84l38 9" ${accentLine}/>`,
+    machine: `<rect x="28" y="36" width="52" height="64" rx="8" fill="#edf1ed" stroke="${accent}" stroke-width="5"/><path d="M114 38v72M106 110h48" ${thin}/>${head(90, 42)}${torso("M90 56l16 28")}<path d="M106 84h38M106 84l-34 26M114 84l36 22" ${common}/>`,
+    cable_stand: `<path d="M36 18v96M36 34h30M36 98h30" ${thin}/>${head(94, 30)}${torso("M94 44v40")}<path d="M80 60h30M94 84l-20 28M94 84l44 13" ${common}/><path d="M138 97L36 68" ${accentLine}/>`,
+    row: `<rect x="42" y="94" width="78" height="14" rx="5" fill="#e4f1eb" stroke="${accent}" stroke-width="5"/>${head(84, 46)}${torso("M88 60l30 24")}<path d="M118 84l-18 22M118 84l40 19M94 66l-38 8" ${common}/><path d="M56 74H30" ${accentLine}/>`,
+    bench_row: `<rect x="48" y="60" width="88" height="18" rx="6" fill="#e4f1eb" stroke="${accent}" stroke-width="5"/>${head(58, 42)}${torso("M68 54h68")}<path d="M88 76l-20 32M118 76l28 32M100 76l-5 26" ${common}/><path d="M96 102h30" ${thin}/>`,
+    pulldown: `<path d="M42 20h98M91 20v24" ${thin}/>${head(90, 52)}${torso("M90 66v34")}<path d="M90 68l-38-30M90 68l38-30M90 100l-22 20M90 100l24 20" ${common}/><path d="M52 38h76" ${accentLine}/>`,
+    face_pull: `<path d="M34 22v92M34 40h26" ${thin}/>${head(98, 48)}${torso("M98 62v34")}<path d="M98 68l-40-20M98 68l-32 0M98 96l-20 20M98 96l24 20" ${common}/><path d="M58 48L34 54" ${accentLine}/>`,
+    leg_press: `<rect x="98" y="34" width="48" height="68" rx="8" fill="#e4f1eb" stroke="${accent}" stroke-width="5"/>${head(50, 70)}${torso("M60 76l44-22")}<path d="M88 60l18 34M106 94l34 4M70 80l-30 28M58 80l-20 0" ${common}/>`,
+    back_extension: `<rect x="56" y="84" width="88" height="16" rx="6" fill="#e4f1eb" stroke="${accent}" stroke-width="5"/>${head(62, 50)}${torso("M72 60l48 27")}<path d="M88 68l-34 38M120 87l32 22M84 64l-30 2" ${common}/>`,
+    pallof: `<path d="M34 20v92M34 54h30" ${thin}/>${head(94, 30)}${torso("M94 44v40")}<path d="M94 60h44M94 84l-20 28M94 84l22 28" ${common}/><path d="M62 54h76" ${accentLine}/>`,
+    treadmill: `<rect x="36" y="94" width="108" height="18" rx="9" fill="#e4f1eb" stroke="${accent}" stroke-width="5"/><path d="M128 94l20-56" ${thin}/>${head(84, 30)}${torso("M84 44l-10 34")}<path d="M74 78l-30 22M74 78l38 24M76 58l-30 8M90 58l30 8" ${common}/>`,
+    sled: `<path d="M104 88h50M112 88l-22 22M154 88l-20 22" ${thin}/>${head(70, 40)}${torso("M78 52l32 34")}<path d="M110 86l-30 26M110 86l46 12M88 64l42-20" ${common}/><path d="M130 44l24 44" ${accentLine}/>`,
   };
 
   return poses[pose] || poses.standing;
+}
+
+function motionCueMarkup(pose) {
+  const cues = {
+    squat: "M205 64q18 26 0 54",
+    goblet: "M205 64q18 26 0 54",
+    split_squat: "M202 74q18 22 4 48",
+    lunge: "M204 76q20 22 8 48",
+    hinge: "M196 60q26 24 28 62",
+    hinge_weight: "M196 60q26 24 28 62",
+    cable_hinge: "M72 112q-20 10-38 2",
+    bridge: "M146 110q0-28 22-44",
+    side_lying: "M166 74q24-22 42-8",
+    quadruped: "M188 58q28-26 48-12",
+    wall: "M168 48q0 38 0 76",
+    doorway: "M166 66q26 0 48 0",
+    step: "M184 128q8-34-18-58",
+    calf_raise: "M210 122q0-32 0-58",
+    mountain: "M174 112q24-8 38-30",
+    machine: "M204 96q20 2 36 14",
+    cable_stand: "M210 112q18-2 34-20",
+    row: "M72 94q-24 0-44 0",
+    bench_row: "M154 112q-18 10-40 8",
+    pulldown: "M190 52q-4 44-28 76",
+    face_pull: "M92 76q-28-18-52-6",
+    leg_press: "M142 104q42 0 70-26",
+    back_extension: "M148 78q28 14 44 44",
+    pallof: "M168 82q36 0 62 0",
+    treadmill: "M78 122q26 12 60 6",
+    sled: "M174 80q34 8 62 28",
+  };
+  const path = cues[pose];
+  if (!path) return "";
+  return `<path d="${path}" stroke="#26735a" stroke-width="5" stroke-linecap="round" fill="none" marker-end="url(#arrowHead)" opacity="0.9"/>`;
 }
 
 function renderRoutineBlock(type) {
