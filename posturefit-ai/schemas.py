@@ -111,3 +111,4 @@ class AgentRunRequest(BaseModel):
     diet_preference: Optional[str] = ""
     training_experience: Optional[str] = ""
     injuries: Optional[str] = ""
+    language: Optional[str] = "en"

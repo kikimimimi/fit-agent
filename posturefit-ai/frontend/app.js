@@ -600,6 +600,7 @@ function agentPayload(intent = null, message = null) {
     intent,
     message: message || payload.problem,
     injuries: value("injuryNotes"),
+    language: currentLanguage,
   };
 }
 
@@ -641,7 +642,7 @@ function renderPlan(plan) {
   document.querySelector("#planOutput").classList.remove("hidden");
   savePlanBtn.disabled = false;
   text("problemAnalysis", localizeAnalysis(plan));
-  text("agentSummary", localizeAgentSummary(plan));
+  text("agentSummary", localizeAgentCoachMessage(currentAgentResult, plan));
   renderMuscleMap(plan.target_muscles);
   renderChips("targetMuscles", plan.target_muscles);
   renderTrainingFocusPhotos(plan.training_focus);
@@ -670,6 +671,7 @@ function renderAgentActivity(agentResult) {
           ["Workout Planner", "基于本地动作规则生成结构化每周训练计划。"],
           ["Safety Checker", "检查训练强度、休息日和明显伤病风险。"],
           ["Nutrition Planner", "补充保守的饮食习惯建议和健康免责声明。"],
+          ["LLM Coach", agentResult?.llm_enabled ? "已调用大模型生成个性化解释。" : "未启用大模型，当前使用本地规则解释。"],
         ]
       : [
           ["Profile Agent", "Analyzed age, training level, goal, schedule, and injury notes."],
@@ -678,6 +680,7 @@ function renderAgentActivity(agentResult) {
           ["Workout Planner", "Generated a structured weekly plan from the local exercise rules."],
           ["Safety Checker", "Reviewed intensity, rest days, and obvious injury risk."],
           ["Nutrition Planner", "Added conservative habit guidance with a health disclaimer."],
+          ["LLM Coach", agentResult?.llm_enabled ? "Used the configured model for personalized coaching text." : "Model is not enabled; using local rule-based explanation."],
         ];
   container.innerHTML = steps
     .map(
@@ -1669,6 +1672,11 @@ function localizeAgentSummary(plan) {
   const name = currentUser?.name || value("name") || "你好";
   const days = plan.weekly_plan.length;
   return `${name}，这是一个每周 ${days} 天的一般性训练计划。动作选择先由本地规则引擎根据问题、场景、训练水平和时长完成，Agent 层只负责解释原因与安全提醒。训练时保持动作可控，先用中低强度开始；如果出现疼痛、头晕、麻木或异常不适，请停止并咨询专业人士。`;
+}
+
+function localizeAgentCoachMessage(agentResult, plan) {
+  if (agentResult?.coach_message) return agentResult.coach_message;
+  return localizeAgentSummary(plan);
 }
 
 function isDefaultProblemText() {

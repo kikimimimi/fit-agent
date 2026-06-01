@@ -141,13 +141,18 @@ def run_agent_workflow(payload: AgentRunRequest, db: Session = Depends(get_db)):
         .all()
     )
     response = OrchestratorAgent(db).run(user, agent_payload, workout_logs=logs)
+    llm_call = response.get("llm_call") or {}
     db.add(
         LLMCallLog(
             user_id=user.id,
-            provider="local_mock",
-            model="fitagent_rule_orchestrator",
-            prompt_type=response["intent"],
-            status="success",
+            provider=llm_call.get("provider", "local_mock"),
+            model=llm_call.get("model", "fitagent_rule_orchestrator"),
+            prompt_type=llm_call.get("prompt_type", response["intent"]),
+            prompt_tokens=int(llm_call.get("prompt_tokens", 0)),
+            completion_tokens=int(llm_call.get("completion_tokens", 0)),
+            latency_ms=int(llm_call.get("latency_ms", 0)),
+            status=llm_call.get("status", "success"),
+            error_message=llm_call.get("error_message", ""),
         )
     )
     db.commit()

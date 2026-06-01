@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import json
 
+from agents.llm_client import LLMClient, LLMResult
 from agents.memory_manager import MemoryManager
 from agents.nutrition_planner import NutritionPlanner
 from agents.profile_agent import ProfileAgent
@@ -23,8 +25,12 @@ class OrchestratorAgent:
         self.safety_checker = SafetyChecker()
         self.progress_tracker = ProgressTracker()
         self.memory_manager = MemoryManager(self.db) if self.db is not None else None
+        self.llm_client = LLMClient()
 
     def detect_intent(self, message: str) -> str:
+        llm_intent = self._detect_intent_with_llm(message)
+        if llm_intent:
+            return llm_intent
         text = message.lower()
         if any(term in text for term in ("weekly report", "review", "progress", "summary", "\u590d\u76d8", "\u5468\u62a5")):
             return "weekly_review"
@@ -48,6 +54,20 @@ class OrchestratorAgent:
             nutrition = self.nutrition_planner.suggest(profile)
             self._remember_plan_context(user.id, message, safety)
             memories = self._recent_memories(user.id)
+            llm = self._coach_with_llm(
+                "plan_explanation",
+                payload,
+                {
+                    "profile": profile,
+                    "intent": intent,
+                    "target_muscles": plan.get("target_muscles", []),
+                    "training_focus": plan.get("training_focus", []),
+                    "weekly_days": len(plan.get("weekly_plan", [])),
+                    "safety_review": safety,
+                    "nutrition_guidance": nutrition,
+                    "memory": memories[:3],
+                },
+            )
             return {
                 "intent": intent,
                 "profile": profile,
@@ -55,33 +75,63 @@ class OrchestratorAgent:
                 "plan": plan,
                 "safety_review": safety,
                 "nutrition_guidance": nutrition,
+                "coach_message": llm.text,
+                "llm_enabled": llm.status == "success",
+                "llm_call": llm.to_log(),
                 "next_actions": ["Log each workout", "Report pain or difficulty", "Review progress weekly"],
             }
 
         if intent == "weekly_review":
             progress = self.progress_tracker.summarize(workout_logs or [], int(payload.get("weekly_frequency", 3)))
-            return {"intent": intent, "profile": profile, "memory": memories, "progress_review": progress}
+            llm = self._coach_with_llm("weekly_review", payload, {"profile": profile, "progress_review": progress, "memory": memories[:3]})
+            return {
+                "intent": intent,
+                "profile": profile,
+                "memory": memories,
+                "progress_review": progress,
+                "coach_message": llm.text,
+                "llm_enabled": llm.status == "success",
+                "llm_call": llm.to_log(),
+            }
 
         if intent == "nutrition_advice":
-            return {"intent": intent, "profile": profile, "memory": memories, "nutrition_guidance": self.nutrition_planner.suggest(profile)}
+            nutrition = self.nutrition_planner.suggest(profile)
+            llm = self._coach_with_llm("nutrition_advice", payload, {"profile": profile, "nutrition_guidance": nutrition, "memory": memories[:3]})
+            return {
+                "intent": intent,
+                "profile": profile,
+                "memory": memories,
+                "nutrition_guidance": nutrition,
+                "coach_message": llm.text,
+                "llm_enabled": llm.status == "success",
+                "llm_call": llm.to_log(),
+            }
 
         if intent == "record_feedback":
             if self.memory_manager:
                 self.memory_manager.remember(user.id, "feedback", "latest_feedback", message)
                 self.db.flush()
                 memories = self._recent_memories(user.id)
+            llm = self._coach_with_llm("feedback_response", payload, {"profile": profile, "feedback": message, "memory": memories[:3]})
             return {
                 "intent": intent,
                 "profile": profile,
                 "memory": memories,
-                "message": "Feedback recorded. FitAgent will use it when adjusting the next plan.",
+                "message": llm.text or "Feedback recorded. FitAgent will use it when adjusting the next plan.",
+                "coach_message": llm.text,
+                "llm_enabled": llm.status == "success",
+                "llm_call": llm.to_log(),
             }
 
+        llm = self._coach_with_llm("general_fitness_question", payload, {"profile": profile, "question": message, "memory": memories[:3]})
         return {
             "intent": intent,
             "profile": profile,
             "memory": memories,
-            "message": "FitAgent can answer general fitness questions, but medical diagnosis is outside its scope.",
+            "message": llm.text or "FitAgent can answer general fitness questions, but medical diagnosis is outside its scope.",
+            "coach_message": llm.text,
+            "llm_enabled": llm.status == "success",
+            "llm_call": llm.to_log(),
         }
 
     def _remember_plan_context(self, user_id: int, message: str, safety: dict) -> None:
@@ -97,3 +147,43 @@ class OrchestratorAgent:
         if not self.memory_manager:
             return []
         return self.memory_manager.recent(user_id)
+
+    def _detect_intent_with_llm(self, message: str) -> str | None:
+        if not message or not self.llm_client.enabled():
+            return None
+        system_prompt = (
+            "Classify a fitness coaching request. Return exactly one label from: "
+            "generate_workout_plan, record_feedback, weekly_review, nutrition_advice, general_fitness_question. "
+            "Do not return any explanation."
+        )
+        result = self.llm_client.complete("intent_classification", system_prompt, message, max_tokens=16)
+        allowed = {
+            "generate_workout_plan",
+            "record_feedback",
+            "weekly_review",
+            "nutrition_advice",
+            "general_fitness_question",
+        }
+        text = result.text.strip().split()[0] if result.text else ""
+        return text if text in allowed else None
+
+    def _coach_with_llm(self, prompt_type: str, payload: dict, context: dict) -> LLMResult:
+        language = payload.get("language") or "en"
+        language_name = "Chinese" if language == "zh" else "English"
+        system_prompt = (
+            f"You are FitAgent, a cautious AI personal fitness coach. Respond in {language_name}. "
+            "Use the supplied structured plan and safety review as ground truth. "
+            "Do not invent medical diagnoses, treatment claims, guaranteed posture correction, or extreme weight-loss advice. "
+            "If pain, injury, dizziness, numbness, pregnancy, or chronic disease is relevant, recommend consulting a qualified professional. "
+            "Keep the response concise, supportive, and practical."
+        )
+        user_prompt = json.dumps(
+            {
+                "task": prompt_type,
+                "user_message": payload.get("message") or payload.get("problem") or "",
+                "context": context,
+            },
+            ensure_ascii=False,
+            default=str,
+        )
+        return self.llm_client.complete(prompt_type, system_prompt, user_prompt)

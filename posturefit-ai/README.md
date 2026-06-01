@@ -133,6 +133,18 @@ Run tests:
 pytest
 ```
 
+## Optional LLM Setup
+
+FitAgent works without a model key by using the local rule-based agent. To enable the LLM-powered coaching layer, set these environment variables locally or in Render:
+
+```text
+LLM_PROVIDER=openai
+LLM_MODEL=gpt-4o-mini
+OPENAI_API_KEY=your_api_key
+```
+
+The model is used for intent understanding and coaching explanations. Workout selection and safety boundaries still come from the deterministic planner and safety checker.
+
 ## API Examples
 
 Create a user:
