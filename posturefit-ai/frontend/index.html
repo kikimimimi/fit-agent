@@ -184,11 +184,14 @@
               </div>
               <div class="workout-actions">
                 <button id="savePlanBtn" class="secondary" disabled data-i18n="saveEdits">Save Edits</button>
-                <div class="export-actions" aria-label="Export plan">
-                  <button id="exportPrintBtn" class="ghost export-button" type="button" data-i18n="exportPdf">PDF / Print</button>
-                  <button id="exportMarkdownBtn" class="ghost export-button" type="button" data-i18n="exportMarkdown">Markdown</button>
-                  <button id="exportCsvBtn" class="ghost export-button" type="button" data-i18n="exportCsv">CSV</button>
-                  <button id="exportJsonBtn" class="ghost export-button" type="button" data-i18n="exportJson">JSON</button>
+                <div class="export-menu">
+                  <button id="exportPlanBtn" class="ghost export-trigger" type="button" aria-expanded="false" aria-controls="exportMenu" data-i18n="exportPlan">Export Document</button>
+                  <div id="exportMenu" class="export-menu-list hidden" role="menu" aria-label="Export plan">
+                    <button class="export-menu-item" type="button" role="menuitem" data-export-format="print" data-i18n="exportPdf">PDF / Print</button>
+                    <button class="export-menu-item" type="button" role="menuitem" data-export-format="markdown" data-i18n="exportMarkdown">Markdown</button>
+                    <button class="export-menu-item" type="button" role="menuitem" data-export-format="csv" data-i18n="exportCsv">CSV</button>
+                    <button class="export-menu-item" type="button" role="menuitem" data-export-format="json" data-i18n="exportJson">JSON</button>
+                  </div>
                 </div>
               </div>
             </div>

@@ -23,10 +23,8 @@ const agentWorkflowPreview = document.querySelector("#agentWorkflowPreview");
 const problemOptionsContainer = document.querySelector("#problemOptions");
 const submitFeedbackBtn = document.querySelector("#submitFeedbackBtn");
 const weeklyReviewBtn = document.querySelector("#weeklyReviewBtn");
-const exportPrintBtn = document.querySelector("#exportPrintBtn");
-const exportMarkdownBtn = document.querySelector("#exportMarkdownBtn");
-const exportCsvBtn = document.querySelector("#exportCsvBtn");
-const exportJsonBtn = document.querySelector("#exportJsonBtn");
+const exportPlanBtn = document.querySelector("#exportPlanBtn");
+const exportMenu = document.querySelector("#exportMenu");
 
 const problemOptionSets = {
   posture_improvement: [
@@ -164,6 +162,7 @@ const translations = {
     exerciseSets: "Sets",
     exerciseReps: "Reps / time",
     exerciseRest: "Rest",
+    exportPlan: "Export Document",
     exportPdf: "PDF / Print",
     exportMarkdown: "Markdown",
     exportCsv: "CSV",
@@ -280,6 +279,7 @@ const translations = {
     exerciseSets: "组数",
     exerciseReps: "次数/时长",
     exerciseRest: "休息",
+    exportPlan: "导出文档",
     exportPdf: "导出 PDF",
     exportMarkdown: "导出 Markdown",
     exportCsv: "导出 CSV",
@@ -1294,6 +1294,7 @@ function exportWorkoutPlan(format) {
     alert(t("exportNoPlan"));
     return;
   }
+  syncEditedPlanInputs();
   const report = buildWorkoutExportReport();
   if (format === "print") {
     exportWorkoutPrint(report);
@@ -1310,6 +1311,22 @@ function exportWorkoutPlan(format) {
   if (format === "json") {
     downloadBlob(JSON.stringify(report, null, 2), `${report.fileStem}.json`, "application/json;charset=utf-8");
   }
+}
+
+function syncEditedPlanInputs() {
+  if (!currentPlan) return;
+  document.querySelectorAll(".exercise-row").forEach((row) => {
+    row.querySelectorAll("input[data-field]").forEach((input) => {
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+  });
+}
+
+function toggleExportMenu(forceOpen = null) {
+  if (!exportMenu || !exportPlanBtn) return;
+  const shouldOpen = forceOpen === null ? exportMenu.classList.contains("hidden") : forceOpen;
+  exportMenu.classList.toggle("hidden", !shouldOpen);
+  exportPlanBtn.setAttribute("aria-expanded", shouldOpen ? "true" : "false");
 }
 
 function buildWorkoutExportReport() {
@@ -1793,16 +1810,23 @@ document.addEventListener("click", (event) => {
       button.classList.toggle("active", button === event.target);
     });
   }
+  if (event.target.closest("#exportPlanBtn")) {
+    toggleExportMenu();
+  }
+  const exportOption = event.target.closest("[data-export-format]");
+  if (exportOption) {
+    toggleExportMenu(false);
+    exportWorkoutPlan(exportOption.dataset.exportFormat);
+  }
+  if (!event.target.closest(".export-menu")) {
+    toggleExportMenu(false);
+  }
 });
 
 generateBtn.addEventListener("click", generatePlan);
 savePlanBtn.addEventListener("click", savePlan);
 submitFeedbackBtn?.addEventListener("click", submitFeedback);
 weeklyReviewBtn?.addEventListener("click", generateWeeklyReview);
-exportPrintBtn?.addEventListener("click", () => exportWorkoutPlan("print"));
-exportMarkdownBtn?.addEventListener("click", () => exportWorkoutPlan("markdown"));
-exportCsvBtn?.addEventListener("click", () => exportWorkoutPlan("csv"));
-exportJsonBtn?.addEventListener("click", () => exportWorkoutPlan("json"));
 editInputsBtn.addEventListener("click", () => {
   currentView = "wizard";
   applyViewMode();
