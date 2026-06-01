@@ -985,13 +985,22 @@ function exerciseImageSrc(exercise) {
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(exerciseSvg(exercise, pose))}`;
 }
 
-function exerciseRasterSrc(exercise) {
-  return `/frontend/assets/exercises/${exerciseAssetId(exercise)}.png`;
+function exerciseRasterSrc(exercise, variant = exerciseAssetVariant()) {
+  const assetId = exerciseAssetId(exercise);
+  if (variant === "female" || variant === "male") {
+    return `/frontend/assets/exercises/${variant}/${assetId}.png`;
+  }
+  return `/frontend/assets/exercises/${assetId}.png`;
 }
 
 function exerciseAssetId(exercise) {
   const raw = exercise.exercise_ref_id || exercise.name || "exercise";
   return String(raw).toLowerCase().replace(/[^a-z0-9_-]+/g, "_").replace(/_+/g, "_").replace(/^_|_$/g, "") || "exercise";
+}
+
+function exerciseAssetVariant() {
+  const sex = currentUser?.sex || choiceValue("sex");
+  return sex === "male" || sex === "female" ? sex : "shared";
 }
 
 function exerciseScenario(exercise) {
@@ -1002,22 +1011,28 @@ function exerciseScenario(exercise) {
 function attachExerciseImageFallback(image, exercise) {
   if (!image) return;
   image.addEventListener("error", async () => {
-    if (image.dataset.generatedAttempted === "1") {
-      image.classList.add("fallback-image");
-      image.src = exerciseImageSrc(exercise);
+    if (image.dataset.fallbackStep === "sex") {
+      image.dataset.fallbackStep = "shared";
+      image.src = exerciseRasterSrc(exercise, "shared");
       return;
     }
-    image.dataset.generatedAttempted = "1";
+    if (image.dataset.fallbackStep === "shared") {
+      image.dataset.fallbackStep = "generated";
+      image.classList.add("fallback-image");
+      image.src = exerciseImageSrc(exercise);
+      const result = await ensureExerciseImageAsset(exercise);
+      if (result?.src && result.fallback === false) {
+        image.classList.remove("fallback-image");
+        image.src = `${result.src}?v=${Date.now()}`;
+      }
+      return;
+    }
     image.classList.add("fallback-image");
     image.src = exerciseImageSrc(exercise);
-
-    const result = await ensureExerciseImageAsset(exercise);
-    if (result?.src && result.fallback === false) {
-      image.classList.remove("fallback-image");
-      image.src = `${result.src}?v=${Date.now()}`;
-    }
   });
-  image.src = exerciseRasterSrc(exercise);
+  const variant = exerciseAssetVariant();
+  image.dataset.fallbackStep = variant === "female" || variant === "male" ? "sex" : "shared";
+  image.src = exerciseRasterSrc(exercise, variant);
 }
 
 async function ensureExerciseImageAsset(exercise) {
