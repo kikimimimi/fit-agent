@@ -7,6 +7,7 @@ let currentStep = 0;
 let currentView = "wizard";
 const totalSteps = 3;
 const exerciseImageRequests = new Map();
+const exerciseImageAssetVersion = "gender-library-2026-06-01";
 
 const apiStatus = document.querySelector("#apiStatus");
 const generateBtn = document.querySelector("#generateBtn");
@@ -987,10 +988,11 @@ function exerciseImageSrc(exercise) {
 
 function exerciseRasterSrc(exercise, variant = exerciseAssetVariant()) {
   const assetId = exerciseAssetId(exercise);
+  const version = `?v=${exerciseImageAssetVersion}`;
   if (variant === "female" || variant === "male") {
-    return `/frontend/assets/exercises/${variant}/${assetId}.png`;
+    return `/frontend/assets/exercises/${variant}/${assetId}.png${version}`;
   }
-  return `/frontend/assets/exercises/${assetId}.png`;
+  return `/frontend/assets/exercises/${assetId}.png${version}`;
 }
 
 function exerciseAssetId(exercise) {
@@ -1010,6 +1012,9 @@ function exerciseScenario(exercise) {
 
 function attachExerciseImageFallback(image, exercise) {
   if (!image) return;
+  image.addEventListener("load", () => {
+    image.classList.remove("fallback-image");
+  });
   image.addEventListener("error", async () => {
     if (image.dataset.fallbackStep === "sex") {
       image.dataset.fallbackStep = "shared";
