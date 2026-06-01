@@ -980,29 +980,25 @@ function poseFromExerciseName(name) {
 
 function exerciseSvg(exercise, pose) {
   const scene = sceneForExercise(exercise, pose);
-  const body = exercisePoseMarkup(pose);
+  const body = exercisePoseMarkup(pose, exercise);
   const cue = motionCueMarkup(pose);
   return `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 196" role="img">
       <defs>
-        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stop-color="#ffffff"/>
-          <stop offset="1" stop-color="${scene.bg}"/>
-        </linearGradient>
-        <filter id="softSketchShadow" x="-10%" y="-10%" width="120%" height="120%">
-          <feDropShadow dx="0" dy="2" stdDeviation="1.4" flood-color="#20242a" flood-opacity="0.12"/>
+        <filter id="anatomyShadow" x="-10%" y="-10%" width="120%" height="120%">
+          <feDropShadow dx="0" dy="2" stdDeviation="1.2" flood-color="#20242a" flood-opacity="0.16"/>
         </filter>
         <marker id="arrowHead" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
           <path d="M0 0L8 4L0 8Z" fill="#26735a"/>
         </marker>
       </defs>
-      <rect width="280" height="196" rx="20" fill="url(#bg)"/>
+      <rect width="280" height="196" rx="20" fill="#ffffff"/>
       ${scene.backdrop}
-      <path d="M24 156H256" stroke="#d8ded9" stroke-width="7" stroke-linecap="round"/>
+      <path d="M24 156H256" stroke="#d0d4d2" stroke-width="6" stroke-linecap="round"/>
       <rect x="14" y="12" width="${scene.badgeWidth}" height="25" rx="12.5" fill="${scene.badgeFill}"/>
       <text x="27" y="29" fill="${scene.badgeText}" font-family="Arial, sans-serif" font-size="12" font-weight="800">${scene.badge}</text>
-      <text x="18" y="181" fill="#5f6874" font-family="Arial, sans-serif" font-size="13" font-weight="800">${escapeSvgText(scene.equipment)}</text>
-      <g transform="translate(46 32) scale(1.18)" filter="url(#softSketchShadow)">
+      <text x="18" y="181" fill="#60656a" font-family="Arial, sans-serif" font-size="12" font-weight="800">${escapeSvgText(scene.equipment)}</text>
+      <g transform="translate(46 32) scale(1.18)" filter="url(#anatomyShadow)">
         ${body}
       </g>
       ${cue}
@@ -1026,23 +1022,22 @@ function sceneForExercise(exercise, pose) {
 }
 
 function homeBackdrop(pose) {
-  const mat = `<rect x="48" y="143" width="166" height="13" rx="6.5" fill="#dceee5"/>`;
-  const room = `<path d="M220 38h34v44h-34z" fill="#fff" stroke="#d8ded9" stroke-width="3"/><path d="M237 38v44M220 60h34" stroke="#d8ded9" stroke-width="2"/>`;
-  const plant = `<path d="M34 135c-8-16 2-32 15-39c1 18-4 30-15 39zM34 135c8-14 21-20 35-15c-9 12-20 16-35 15z" fill="#e4f1eb" stroke="#26735a" stroke-width="2.5"/>`;
-  const wall = pose === "wall" ? `<path d="M54 42v100" stroke="#b38324" stroke-width="6" stroke-linecap="round"/>` : "";
-  const doorway = pose === "doorway" ? `<path d="M56 36v108M152 36v108M56 36h96" stroke="#b38324" stroke-width="6" stroke-linecap="round"/>` : "";
-  const step = pose === "step" ? `<rect x="154" y="131" width="70" height="21" rx="6" fill="#e4f1eb" stroke="#26735a" stroke-width="4"/>` : "";
-  return `${room}${plant}${mat}${wall}${doorway}${step}`;
+  const mat = `<rect x="48" y="143" width="166" height="12" rx="6" fill="#eceeed" stroke="#cfd4d1" stroke-width="2"/>`;
+  const room = `<path d="M220 38h34v44h-34z" fill="#fff" stroke="#d4d8d6" stroke-width="3"/><path d="M237 38v44M220 60h34" stroke="#d4d8d6" stroke-width="2"/>`;
+  const wall = pose === "wall" ? `<path d="M54 42v100" stroke="#9da3a0" stroke-width="6" stroke-linecap="round"/>` : "";
+  const doorway = pose === "doorway" ? `<path d="M56 36v108M152 36v108M56 36h96" stroke="#9da3a0" stroke-width="6" stroke-linecap="round"/>` : "";
+  const step = pose === "step" ? `<rect x="154" y="131" width="70" height="21" rx="4" fill="#eeeeee" stroke="#848a87" stroke-width="4"/>` : "";
+  return `${room}${mat}${wall}${doorway}${step}`;
 }
 
 function gymBackdrop(pose) {
-  const rack = `<path d="M40 38v108M240 38v108M40 56h200" stroke="#cbd4ce" stroke-width="6" stroke-linecap="round"/>`;
-  const plates = `<circle cx="238" cy="120" r="16" fill="#edf1ed" stroke="#326da8" stroke-width="4"/><circle cx="238" cy="120" r="6" fill="#fff" stroke="#326da8" stroke-width="3"/>`;
+  const rack = `<path d="M40 38v108M240 38v108M40 56h200" stroke="#c3c7c5" stroke-width="6" stroke-linecap="round"/>`;
+  const plates = `<circle cx="238" cy="120" r="16" fill="#f2f2f2" stroke="#5d6266" stroke-width="4"/><circle cx="238" cy="120" r="6" fill="#fff" stroke="#5d6266" stroke-width="3"/>`;
   const cable = ["cable_stand", "cable_hinge", "face_pull", "pallof", "pulldown", "row"].includes(pose)
-    ? `<path d="M42 30v122M42 50h36M42 132h36" stroke="#326da8" stroke-width="6" stroke-linecap="round"/><path d="M42 50L92 96" stroke="#5f6874" stroke-width="2.5"/>`
+    ? `<path d="M42 30v122M42 50h36M42 132h36" stroke="#777d82" stroke-width="6" stroke-linecap="round"/><path d="M42 50L92 96" stroke="#60656a" stroke-width="2.5"/>`
     : "";
   const bench = ["bench_row", "back_extension"].includes(pose)
-    ? `<rect x="92" y="126" width="118" height="17" rx="6" fill="#dbeafe" stroke="#326da8" stroke-width="4"/>`
+    ? `<rect x="92" y="126" width="118" height="17" rx="4" fill="#20242a" stroke="#111" stroke-width="3"/>`
     : "";
   return `${rack}${plates}${cable}${bench}`;
 }
@@ -1094,15 +1089,23 @@ function escapeSvgText(value) {
   return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 }
 
-function exercisePoseMarkup(pose) {
+function muscleEmphasis(exercise) {
+  const text = `${exercise.name || ""} ${(exercise.target_muscles || []).join(" ")}`.toLowerCase();
+  if (text.includes("stretch") || text.includes("mobility")) return 0.35;
+  return 0.78;
+}
+
+function exercisePoseMarkup(pose, exercise) {
   const stroke = "#20242a";
   const accent = "#26735a";
   const muted = "#b38324";
+  const skin = "#d8d8d8";
+  const muscle = "#c85645";
   const common = `stroke="${stroke}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"`;
-  const accentLine = `stroke="${accent}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none"`;
-  const thin = `stroke="${muted}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"`;
-  const head = (cx, cy) => `<circle cx="${cx}" cy="${cy}" r="12" fill="#f0c8b7" stroke="${stroke}" stroke-width="4.5"/><path d="M${cx - 6} ${cy + 2}q6 5 12 0" stroke="${stroke}" stroke-width="2.5" stroke-linecap="round" fill="none"/>`;
-  const torso = (path) => `<path d="${path}" stroke="#26735a" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.9"/>`;
+  const accentLine = `stroke="${muscle}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.9"`;
+  const thin = `stroke="#777d82" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"`;
+  const head = (cx, cy) => `<circle cx="${cx}" cy="${cy}" r="12" fill="${skin}" stroke="${stroke}" stroke-width="4.5"/><path d="M${cx - 4} ${cy - 11}q8 2 11 10" stroke="#60656a" stroke-width="3" stroke-linecap="round" fill="none"/>`;
+  const torso = (path) => `<path d="${path}" stroke="${skin}" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="${path}" stroke="${muscle}" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="${muscleEmphasis(exercise)}"/>`;
   const dumbbell = `<path d="M36 92h28M30 83v18M70 83v18" ${thin}/>`;
 
   const poses = {
