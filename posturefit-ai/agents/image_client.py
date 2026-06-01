@@ -36,6 +36,7 @@ class ExerciseImageClient:
         self.quality = os.getenv("IMAGE_QUALITY", "medium").strip()
         self.size = os.getenv("IMAGE_SIZE", "1024x1024").strip()
         self.openai_api_key = os.getenv("OPENAI_API_KEY") or os.getenv("LLM_API_KEY")
+        self.openai_base_url = os.getenv("OPENAI_BASE_URL") or os.getenv("LLM_BASE_URL")
 
     def enabled(self) -> bool:
         return self.provider == "openai" and bool(self.openai_api_key) and OpenAI is not None
@@ -112,7 +113,10 @@ class ExerciseImageClient:
             )
 
     def _generate_png_bytes(self, prompt: str) -> bytes:
-        client = OpenAI(api_key=self.openai_api_key)
+        client_kwargs = {"api_key": self.openai_api_key}
+        if self.openai_base_url:
+            client_kwargs["base_url"] = self.openai_base_url
+        client = OpenAI(**client_kwargs)
         if not hasattr(client, "images"):
             raise RuntimeError("Installed OpenAI SDK does not expose client.images.")
 

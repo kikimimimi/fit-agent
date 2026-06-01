@@ -23,6 +23,10 @@ const agentWorkflowPreview = document.querySelector("#agentWorkflowPreview");
 const problemOptionsContainer = document.querySelector("#problemOptions");
 const submitFeedbackBtn = document.querySelector("#submitFeedbackBtn");
 const weeklyReviewBtn = document.querySelector("#weeklyReviewBtn");
+const exportPrintBtn = document.querySelector("#exportPrintBtn");
+const exportMarkdownBtn = document.querySelector("#exportMarkdownBtn");
+const exportCsvBtn = document.querySelector("#exportCsvBtn");
+const exportJsonBtn = document.querySelector("#exportJsonBtn");
 
 const problemOptionSets = {
   posture_improvement: [
@@ -160,6 +164,12 @@ const translations = {
     exerciseSets: "Sets",
     exerciseReps: "Reps / time",
     exerciseRest: "Rest",
+    exportPdf: "PDF / Print",
+    exportMarkdown: "Markdown",
+    exportCsv: "CSV",
+    exportJson: "JSON",
+    exportBlocked: "The print window was blocked. Downloading an HTML report instead.",
+    exportNoPlan: "Generate a plan before exporting.",
     weeklyPlan: "Weekly Plan",
     weeklyPlanHint: "Edit exercises, sets, reps, and rest time directly in the plan.",
     history: "History",
@@ -270,6 +280,12 @@ const translations = {
     exerciseSets: "组数",
     exerciseReps: "次数/时长",
     exerciseRest: "休息",
+    exportPdf: "导出 PDF",
+    exportMarkdown: "导出 Markdown",
+    exportCsv: "导出 CSV",
+    exportJson: "导出 JSON",
+    exportBlocked: "打印窗口被浏览器拦截，已改为下载 HTML 报告。",
+    exportNoPlan: "请先生成计划，再导出文档。",
     weeklyPlan: "每周计划",
     weeklyPlanHint: "可以直接修改计划中的动作、组数、次数和休息时间。",
     history: "历史记录",
@@ -1258,6 +1274,373 @@ function renderRoutineAction(action) {
   `;
 }
 
+function exportWorkoutPlan(format) {
+  if (!currentPlan) {
+    alert(t("exportNoPlan"));
+    return;
+  }
+  const report = buildWorkoutExportReport();
+  if (format === "print") {
+    exportWorkoutPrint(report);
+    return;
+  }
+  if (format === "markdown") {
+    downloadBlob(workoutMarkdown(report), `${report.fileStem}.md`, "text/markdown;charset=utf-8");
+    return;
+  }
+  if (format === "csv") {
+    downloadBlob(`\uFEFF${workoutCsv(report)}`, `${report.fileStem}.csv`, "text/csv;charset=utf-8");
+    return;
+  }
+  if (format === "json") {
+    downloadBlob(JSON.stringify(report, null, 2), `${report.fileStem}.json`, "application/json;charset=utf-8");
+  }
+}
+
+function buildWorkoutExportReport() {
+  const isZh = currentLanguage === "zh";
+  const labels = exportLabels();
+  const generatedAt = new Date().toLocaleString(isZh ? "zh-CN" : "en-US");
+  const userName = currentUser?.name || value("name") || "FitAgent User";
+  const days = (currentPlan.weekly_plan || []).map((day) => ({
+    dayNumber: day.day_number,
+    title: localizeDayTitle(day.title, day.day_number),
+    warmup: localizeWarmup(day.warmup),
+    cooldown: localizeCooldown(day.cooldown),
+    exercises: (day.exercises || []).map((exercise) => ({
+      name: localizeExerciseName(exercise.name),
+      targetMuscles: (exercise.target_muscles || []).map(localizeTerm),
+      sets: String(exercise.sets || ""),
+      repsOrDuration: localizeRepsOrDuration(exercise.reps_or_duration || ""),
+      rest: formatRest(exercise.rest_seconds),
+      restSeconds: Number(exercise.rest_seconds || 0),
+      instruction: localizeExerciseInstruction(exercise),
+      safetyNote: localizeExerciseSafety(exercise),
+    })),
+  }));
+  return {
+    title: isZh ? "FitAgent 个性化健身计划" : "FitAgent Personalized Workout Plan",
+    fileStem: `fitagent-workout-plan-${new Date().toISOString().slice(0, 10)}`,
+    generatedAt,
+    language: currentLanguage,
+    labels,
+    profile: [
+      [labels.name, userName],
+      [labels.age, String(currentUser?.age || value("age") || "")],
+      [labels.sex, localizeProfileValue(currentUser?.sex || choiceValue("sex"))],
+      [labels.fitnessLevel, localizeProfileValue(currentUser?.fitness_level || choiceValue("fitnessLevel"))],
+      [labels.goal, localizeProfileValue(currentUser?.goal || choiceValue("goal"))],
+      [labels.weeklyFrequency, `${days.length} ${isZh ? "天/周" : "days/week"}`],
+      [labels.scenario, workoutScenarioSummary(days)],
+    ],
+    analysis: localizeAnalysis(currentPlan),
+    targetMuscles: (currentPlan.target_muscles || []).map(localizeTerm),
+    trainingFocus: (currentPlan.training_focus || []).map(localizeTerm),
+    agentSummary: localizeAgentCoachMessage(currentAgentResult, currentPlan),
+    days,
+    disclaimer: t("disclaimer"),
+  };
+}
+
+function exportLabels() {
+  if (currentLanguage === "zh") {
+    return {
+      generatedAt: "生成时间",
+      profile: "基础信息",
+      name: "姓名",
+      age: "年龄",
+      sex: "性别",
+      fitnessLevel: "训练水平",
+      goal: "目标",
+      weeklyFrequency: "每周频率",
+      scenario: "训练场景",
+      overview: "计划概览",
+      problemAnalysis: "问题分析",
+      targetMuscles: "目标肌群",
+      trainingFocus: "训练重点",
+      agentSummary: "Agent 总结",
+      weeklyPlan: "每周训练安排",
+      warmup: "热身",
+      cooldown: "放松",
+      exercise: "动作",
+      sets: "组数",
+      reps: "次数 / 时长",
+      rest: "休息",
+      target: "目标",
+      instruction: "动作说明",
+      safety: "安全提示",
+      disclaimer: "免责声明",
+      home: "居家",
+      gym: "健身房",
+      mixed: "居家 + 健身房",
+    };
+  }
+  return {
+    generatedAt: "Generated At",
+    profile: "Profile",
+    name: "Name",
+    age: "Age",
+    sex: "Sex",
+    fitnessLevel: "Fitness Level",
+    goal: "Goal",
+    weeklyFrequency: "Weekly Frequency",
+    scenario: "Training Scenario",
+    overview: "Plan Overview",
+    problemAnalysis: "Problem Analysis",
+    targetMuscles: "Target Muscles",
+    trainingFocus: "Training Focus",
+    agentSummary: "Agent Summary",
+    weeklyPlan: "Weekly Plan",
+    warmup: "Warmup",
+    cooldown: "Cooldown",
+    exercise: "Exercise",
+    sets: "Sets",
+    reps: "Reps / Time",
+    rest: "Rest",
+    target: "Target",
+    instruction: "Instruction",
+    safety: "Safety Note",
+    disclaimer: "Disclaimer",
+    home: "Home",
+    gym: "Gym",
+    mixed: "Home + Gym",
+  };
+}
+
+function localizeProfileValue(value) {
+  const raw = String(value || "");
+  if (currentLanguage !== "zh") return raw;
+  const labels = {
+    female: "女",
+    male: "男",
+    beginner: "初级",
+    intermediate: "中级",
+    advanced: "高级",
+    posture_improvement: "体态改善",
+    fat_loss: "减脂",
+    muscle_gain: "增肌",
+    body_shape: "塑形",
+  };
+  return labels[raw] || raw;
+}
+
+function workoutScenarioSummary(days) {
+  const refs = days.flatMap((day) => day.exercises.map((exercise) => exercise.name.toLowerCase()));
+  const hasGym = (currentPlan.weekly_plan || []).some((day) => (day.exercises || []).some((exercise) => String(exercise.exercise_ref_id || "").startsWith("gym_")));
+  const hasHome = (currentPlan.weekly_plan || []).some((day) => (day.exercises || []).some((exercise) => String(exercise.exercise_ref_id || "").startsWith("home_")));
+  const labels = exportLabels();
+  if (hasGym && hasHome) return labels.mixed;
+  if (hasGym) return labels.gym;
+  if (hasHome || refs.length) return labels.home;
+  return "";
+}
+
+function formatRest(seconds) {
+  const value = Number(seconds || 0);
+  return currentLanguage === "zh" ? `${value} 秒` : `${value} sec`;
+}
+
+function exportWorkoutPrint(report) {
+  const html = workoutHtml(report);
+  const popup = window.open("", "_blank");
+  if (!popup) {
+    alert(t("exportBlocked"));
+    downloadBlob(html, `${report.fileStem}.html`, "text/html;charset=utf-8");
+    return;
+  }
+  popup.document.open();
+  popup.document.write(html);
+  popup.document.close();
+  popup.focus();
+  popup.setTimeout(() => popup.print(), 350);
+}
+
+function workoutHtml(report) {
+  const labels = report.labels;
+  return `<!doctype html>
+<html lang="${report.language === "zh" ? "zh-CN" : "en"}">
+<head>
+  <meta charset="utf-8" />
+  <title>${escapeHtml(report.title)}</title>
+  <style>
+    body { margin: 0; color: #20242a; background: #f7f8f4; font-family: Arial, "Microsoft YaHei", sans-serif; }
+    main { max-width: 980px; margin: 0 auto; padding: 36px 28px; background: #fff; }
+    h1 { margin: 0 0 6px; font-size: 30px; }
+    h2 { margin: 26px 0 12px; padding-bottom: 7px; border-bottom: 2px solid #d8ded9; font-size: 19px; }
+    h3 { margin: 22px 0 10px; font-size: 16px; }
+    p { line-height: 1.55; }
+    .meta { color: #5f6874; }
+    .profile { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 18px; margin: 18px 0; }
+    .profile div { padding: 10px 12px; border: 1px solid #d8ded9; border-radius: 8px; background: #fbfcff; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 14px; }
+    .chip { padding: 6px 9px; border-radius: 999px; background: #e4f1eb; color: #193b32; font-weight: 700; font-size: 12px; }
+    table { width: 100%; border-collapse: collapse; margin: 10px 0 18px; table-layout: fixed; }
+    th, td { border: 1px solid #d8ded9; padding: 8px 9px; text-align: left; vertical-align: top; font-size: 12px; line-height: 1.42; }
+    th { background: #f2f6f3; font-size: 11px; text-transform: uppercase; }
+    .day { break-inside: avoid; page-break-inside: avoid; }
+    .note { padding: 10px 12px; border-left: 4px solid #26735a; background: #f7faf8; }
+    @media print { body { background: #fff; } main { padding: 0; } button { display: none; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>${escapeHtml(report.title)}</h1>
+    <p class="meta">${escapeHtml(labels.generatedAt)}: ${escapeHtml(report.generatedAt)}</p>
+    <h2>${escapeHtml(labels.profile)}</h2>
+    <div class="profile">
+      ${report.profile.map(([key, value]) => `<div><strong>${escapeHtml(key)}</strong><br />${escapeHtml(value)}</div>`).join("")}
+    </div>
+    <h2>${escapeHtml(labels.overview)}</h2>
+    <p><strong>${escapeHtml(labels.problemAnalysis)}:</strong> ${escapeHtml(report.analysis)}</p>
+    <p><strong>${escapeHtml(labels.agentSummary)}:</strong> ${escapeHtml(report.agentSummary)}</p>
+    ${htmlChipGroup(labels.targetMuscles, report.targetMuscles)}
+    ${htmlChipGroup(labels.trainingFocus, report.trainingFocus)}
+    <h2>${escapeHtml(labels.weeklyPlan)}</h2>
+    ${report.days.map((day) => workoutDayHtml(day, labels)).join("")}
+    <h2>${escapeHtml(labels.disclaimer)}</h2>
+    <p class="note">${escapeHtml(report.disclaimer)}</p>
+  </main>
+</body>
+</html>`;
+}
+
+function htmlChipGroup(title, items) {
+  return `
+    <h3>${escapeHtml(title)}</h3>
+    <div class="chips">${items.map((item) => `<span class="chip">${escapeHtml(item)}</span>`).join("")}</div>
+  `;
+}
+
+function workoutDayHtml(day, labels) {
+  return `
+    <section class="day">
+      <h3>${escapeHtml(day.title)}</h3>
+      <p><strong>${escapeHtml(labels.warmup)}:</strong> ${escapeHtml(day.warmup)}</p>
+      <table>
+        <thead>
+          <tr>
+            <th>${escapeHtml(labels.exercise)}</th>
+            <th>${escapeHtml(labels.sets)}</th>
+            <th>${escapeHtml(labels.reps)}</th>
+            <th>${escapeHtml(labels.rest)}</th>
+            <th>${escapeHtml(labels.target)}</th>
+            <th>${escapeHtml(labels.instruction)}</th>
+            <th>${escapeHtml(labels.safety)}</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${day.exercises
+            .map(
+              (exercise) => `
+                <tr>
+                  <td><strong>${escapeHtml(exercise.name)}</strong></td>
+                  <td>${escapeHtml(exercise.sets)}</td>
+                  <td>${escapeHtml(exercise.repsOrDuration)}</td>
+                  <td>${escapeHtml(exercise.rest)}</td>
+                  <td>${escapeHtml(exercise.targetMuscles.join(", "))}</td>
+                  <td>${escapeHtml(exercise.instruction)}</td>
+                  <td>${escapeHtml(exercise.safetyNote)}</td>
+                </tr>
+              `
+            )
+            .join("")}
+        </tbody>
+      </table>
+      <p><strong>${escapeHtml(labels.cooldown)}:</strong> ${escapeHtml(day.cooldown)}</p>
+    </section>
+  `;
+}
+
+function workoutMarkdown(report) {
+  const labels = report.labels;
+  const lines = [
+    `# ${report.title}`,
+    "",
+    `**${labels.generatedAt}:** ${report.generatedAt}`,
+    "",
+    `## ${labels.profile}`,
+    "",
+    ...report.profile.map(([key, value]) => `- **${key}:** ${value}`),
+    "",
+    `## ${labels.overview}`,
+    "",
+    `**${labels.problemAnalysis}:** ${report.analysis}`,
+    "",
+    `**${labels.agentSummary}:** ${report.agentSummary}`,
+    "",
+    `**${labels.targetMuscles}:** ${report.targetMuscles.join(", ")}`,
+    "",
+    `**${labels.trainingFocus}:** ${report.trainingFocus.join(", ")}`,
+    "",
+    `## ${labels.weeklyPlan}`,
+    "",
+  ];
+  report.days.forEach((day) => {
+    lines.push(`### ${day.title}`, "", `**${labels.warmup}:** ${day.warmup}`, "");
+    lines.push(`| ${labels.exercise} | ${labels.sets} | ${labels.reps} | ${labels.rest} | ${labels.target} | ${labels.instruction} | ${labels.safety} |`);
+    lines.push("| --- | --- | --- | --- | --- | --- | --- |");
+    day.exercises.forEach((exercise) => {
+      lines.push(
+        `| ${mdCell(exercise.name)} | ${mdCell(exercise.sets)} | ${mdCell(exercise.repsOrDuration)} | ${mdCell(exercise.rest)} | ${mdCell(
+          exercise.targetMuscles.join(", ")
+        )} | ${mdCell(exercise.instruction)} | ${mdCell(exercise.safetyNote)} |`
+      );
+    });
+    lines.push("", `**${labels.cooldown}:** ${day.cooldown}`, "");
+  });
+  lines.push(`## ${labels.disclaimer}`, "", report.disclaimer, "");
+  return lines.join("\n");
+}
+
+function workoutCsv(report) {
+  const labels = report.labels;
+  const rows = [[
+    "Day",
+    labels.exercise,
+    labels.sets,
+    labels.reps,
+    labels.rest,
+    labels.target,
+    labels.instruction,
+    labels.safety,
+  ]];
+  report.days.forEach((day) => {
+    day.exercises.forEach((exercise) => {
+      rows.push([
+        day.title,
+        exercise.name,
+        exercise.sets,
+        exercise.repsOrDuration,
+        exercise.rest,
+        exercise.targetMuscles.join(", "),
+        exercise.instruction,
+        exercise.safetyNote,
+      ]);
+    });
+  });
+  return rows.map((row) => row.map(csvCell).join(",")).join("\n");
+}
+
+function mdCell(value) {
+  return String(value || "").replaceAll("|", "\\|").replace(/\s+/g, " ").trim();
+}
+
+function csvCell(value) {
+  return `"${String(value || "").replaceAll('"', '""')}"`;
+}
+
+function downloadBlob(content, filename, type) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+}
+
 async function savePlan() {
   if (!currentPlan) return;
   savePlanBtn.disabled = true;
@@ -1401,6 +1784,10 @@ generateBtn.addEventListener("click", generatePlan);
 savePlanBtn.addEventListener("click", savePlan);
 submitFeedbackBtn?.addEventListener("click", submitFeedback);
 weeklyReviewBtn?.addEventListener("click", generateWeeklyReview);
+exportPrintBtn?.addEventListener("click", () => exportWorkoutPlan("print"));
+exportMarkdownBtn?.addEventListener("click", () => exportWorkoutPlan("markdown"));
+exportCsvBtn?.addEventListener("click", () => exportWorkoutPlan("csv"));
+exportJsonBtn?.addEventListener("click", () => exportWorkoutPlan("json"));
 editInputsBtn.addEventListener("click", () => {
   currentView = "wizard";
   applyViewMode();

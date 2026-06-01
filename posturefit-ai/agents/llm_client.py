@@ -43,6 +43,7 @@ class LLMClient:
         self.provider = os.getenv("LLM_PROVIDER", "local").strip().lower()
         self.model = os.getenv("LLM_MODEL", "gpt-4o-mini").strip()
         self.openai_api_key = os.getenv("OPENAI_API_KEY") or os.getenv("LLM_API_KEY")
+        self.openai_base_url = os.getenv("OPENAI_BASE_URL") or os.getenv("LLM_BASE_URL")
 
     def enabled(self) -> bool:
         return self.provider == "openai" and bool(self.openai_api_key) and OpenAI is not None
@@ -57,7 +58,10 @@ class LLMClient:
 
         started = time.perf_counter()
         try:
-            client = OpenAI(api_key=self.openai_api_key)
+            client_kwargs = {"api_key": self.openai_api_key}
+            if self.openai_base_url:
+                client_kwargs["base_url"] = self.openai_base_url
+            client = OpenAI(**client_kwargs)
             response = self._responses_create(client, system_prompt, user_prompt, max_tokens)
             text = self._extract_response_text(response)
             usage = getattr(response, "usage", None)

@@ -462,6 +462,27 @@ button:disabled {
   min-width: 120px;
 }
 
+.workout-actions {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+  min-width: 330px;
+}
+
+.export-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.export-button {
+  min-width: 72px;
+  padding: 8px 10px;
+  color: var(--ink);
+  font-size: 12px;
+}
+
 .history-panel {
   margin-top: 2px;
 }
@@ -960,6 +981,17 @@ button:disabled {
   .feedback-header .secondary,
   .feedback-actions .primary {
     width: 100%;
+  }
+
+  .workout-actions,
+  .export-actions {
+    width: 100%;
+    justify-items: stretch;
+    justify-content: stretch;
+  }
+
+  .export-button {
+    flex: 1 1 120px;
   }
 }
 

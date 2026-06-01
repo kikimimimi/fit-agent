@@ -141,9 +141,12 @@ FitAgent works without a model key by using the local rule-based agent. To enabl
 LLM_PROVIDER=openai
 LLM_MODEL=gpt-4o-mini
 OPENAI_API_KEY=your_api_key
+OPENAI_BASE_URL=https://api.openai.com/v1
 ```
 
 The model is used for intent understanding and coaching explanations. Workout selection and safety boundaries still come from the deterministic planner and safety checker.
+
+For an OpenAI-compatible proxy, keep `LLM_PROVIDER=openai`, put the proxy card/key in `OPENAI_API_KEY`, and set `OPENAI_BASE_URL` to the proxy's OpenAI-compatible endpoint.
 
 Missing exercise PNGs can also be generated automatically when the same OpenAI key is available. Optional overrides:
 

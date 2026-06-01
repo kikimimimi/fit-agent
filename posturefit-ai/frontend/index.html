@@ -182,7 +182,15 @@
                 <h2 data-i18n="weeklyPlan">Weekly Plan</h2>
                 <p class="muted" data-i18n="weeklyPlanHint">Edit exercises, sets, reps, and rest time directly in the plan.</p>
               </div>
-              <button id="savePlanBtn" class="secondary" disabled data-i18n="saveEdits">Save Edits</button>
+              <div class="workout-actions">
+                <button id="savePlanBtn" class="secondary" disabled data-i18n="saveEdits">Save Edits</button>
+                <div class="export-actions" aria-label="Export plan">
+                  <button id="exportPrintBtn" class="ghost export-button" type="button" data-i18n="exportPdf">PDF / Print</button>
+                  <button id="exportMarkdownBtn" class="ghost export-button" type="button" data-i18n="exportMarkdown">Markdown</button>
+                  <button id="exportCsvBtn" class="ghost export-button" type="button" data-i18n="exportCsv">CSV</button>
+                  <button id="exportJsonBtn" class="ghost export-button" type="button" data-i18n="exportJson">JSON</button>
+                </div>
+              </div>
             </div>
             <div id="weeklyPlan"></div>
             <section class="feedback-panel">
