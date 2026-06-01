@@ -859,6 +859,11 @@ button:disabled {
   display: block;
   width: 100%;
   aspect-ratio: 10 / 7;
+  object-fit: contain;
+  background: #fff;
+}
+
+.exercise-visual img.fallback-image {
   object-fit: cover;
 }
 

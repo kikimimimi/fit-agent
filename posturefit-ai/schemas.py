@@ -112,3 +112,11 @@ class AgentRunRequest(BaseModel):
     training_experience: Optional[str] = ""
     injuries: Optional[str] = ""
     language: Optional[str] = "en"
+
+
+class ExerciseImageRequest(BaseModel):
+    exercise_ref_id: str
+    name: str
+    scenario: Optional[str] = "home"
+    target_muscles: List[str] = Field(default_factory=list)
+    instruction: Optional[str] = ""

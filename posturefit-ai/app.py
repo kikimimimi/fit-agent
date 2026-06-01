@@ -1,4 +1,5 @@
 import json
+import re
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, HTTPException
@@ -8,12 +9,14 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 
 from agents import OrchestratorAgent
+from agents.image_client import ExerciseImageClient
 from agent import build_agent_summary
 from database import LLMCallLog, Plan, PlanDay, PlanExercise, User, UserProfile, WorkoutLog, get_db, init_db
 from recommendation_engine import generate_recommendation
 from schemas import (
     DISCLAIMER,
     AgentRunRequest,
+    ExerciseImageRequest,
     GeneratePlanRequest,
     PlanOut,
     PlanUpdate,
@@ -27,6 +30,7 @@ from schemas import (
 app = FastAPI(title="FitAgent", version="0.1.0")
 BASE_DIR = Path(__file__).resolve().parent
 FRONTEND_DIR = BASE_DIR / "frontend"
+EXERCISE_ASSET_DIR = FRONTEND_DIR / "assets" / "exercises"
 
 app.add_middleware(
     CORSMiddleware,
@@ -159,6 +163,45 @@ def run_agent_workflow(payload: AgentRunRequest, db: Session = Depends(get_db)):
     return response
 
 
+@app.post("/api/exercise-images")
+def ensure_exercise_image(payload: ExerciseImageRequest):
+    asset_id = _safe_asset_id(payload.exercise_ref_id or payload.name)
+    target_path = EXERCISE_ASSET_DIR / f"{asset_id}.png"
+    src = f"/frontend/assets/exercises/{asset_id}.png"
+    if target_path.exists():
+        return {
+            "status": "cached",
+            "src": src,
+            "fallback": False,
+            "enabled": ExerciseImageClient().enabled(),
+        }
+
+    result = ExerciseImageClient().generate_exercise_image(
+        exercise_ref_id=asset_id,
+        exercise_name=payload.name,
+        scenario=payload.scenario or ("gym" if asset_id.startswith("gym_") else "home"),
+        target_muscles=payload.target_muscles,
+        instruction=payload.instruction or "",
+        output_path=target_path,
+    )
+    if result.status in {"success", "cached"} and target_path.exists():
+        return {
+            "status": result.status,
+            "src": src,
+            "fallback": False,
+            "enabled": result.enabled,
+            "model": result.model,
+        }
+    return {
+        "status": result.status,
+        "src": "",
+        "fallback": True,
+        "enabled": result.enabled,
+        "model": result.model,
+        "error_message": result.error_message,
+    }
+
+
 @app.get("/api/plans/{plan_id}", response_model=PlanOut)
 def get_plan(plan_id: int, db: Session = Depends(get_db)):
     plan = db.get(Plan, plan_id)
@@ -276,6 +319,12 @@ def _schedule_from_agent_payload(payload: AgentRunRequest) -> list[dict] | None:
     if payload.gym_sessions:
         schedule.append({"scenario": "gym", "sessions": payload.gym_sessions, "session_minutes": payload.gym_minutes})
     return schedule
+
+
+def _safe_asset_id(value: str) -> str:
+    slug = re.sub(r"[^a-z0-9_-]+", "_", value.strip().lower())
+    slug = re.sub(r"_+", "_", slug).strip("_")
+    return slug[:80] or "exercise"
 
 
 def _plan_to_response(plan: Plan) -> dict:

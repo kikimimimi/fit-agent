@@ -6,6 +6,7 @@ let currentLanguage = localStorage.getItem("posturefit-language") || "en";
 let currentStep = 0;
 let currentView = "wizard";
 const totalSteps = 3;
+const exerciseImageRequests = new Map();
 
 const apiStatus = document.querySelector("#apiStatus");
 const generateBtn = document.querySelector("#generateBtn");
@@ -905,7 +906,7 @@ function exerciseEditor(exercise, dayIndex, exerciseIndex) {
   row.className = "exercise-row";
   row.innerHTML = `
     <div class="exercise-visual">
-      <img src="${exerciseImageSrc(exercise)}" alt="${escapeAttr(localizeExerciseName(exercise.name))} illustration" loading="lazy" />
+      <img alt="${escapeAttr(localizeExerciseName(exercise.name))} instruction photo" loading="lazy" />
     </div>
     <div class="exercise-fields">
       <input class="exercise-name-input" aria-label="Exercise name" value="${escapeAttr(localizeExerciseName(exercise.name))}" data-field="name" />
@@ -924,6 +925,7 @@ function exerciseEditor(exercise, dayIndex, exerciseIndex) {
       currentPlan.weekly_plan[dayIndex].exercises[exerciseIndex][field] = value;
     });
   });
+  attachExerciseImageFallback(row.querySelector(".exercise-visual img"), exercise);
   return row;
 }
 
@@ -965,6 +967,61 @@ const exerciseVisualById = {
 function exerciseImageSrc(exercise) {
   const pose = exerciseVisualById[exercise.exercise_ref_id] || poseFromExerciseName(exercise.name);
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(exerciseSvg(exercise, pose))}`;
+}
+
+function exerciseRasterSrc(exercise) {
+  return `/frontend/assets/exercises/${exerciseAssetId(exercise)}.png`;
+}
+
+function exerciseAssetId(exercise) {
+  const raw = exercise.exercise_ref_id || exercise.name || "exercise";
+  return String(raw).toLowerCase().replace(/[^a-z0-9_-]+/g, "_").replace(/_+/g, "_").replace(/^_|_$/g, "") || "exercise";
+}
+
+function exerciseScenario(exercise) {
+  const refId = exercise.exercise_ref_id || "";
+  return refId.startsWith("gym_") ? "gym" : "home";
+}
+
+function attachExerciseImageFallback(image, exercise) {
+  if (!image) return;
+  image.addEventListener("error", async () => {
+    if (image.dataset.generatedAttempted === "1") {
+      image.classList.add("fallback-image");
+      image.src = exerciseImageSrc(exercise);
+      return;
+    }
+    image.dataset.generatedAttempted = "1";
+    image.classList.add("fallback-image");
+    image.src = exerciseImageSrc(exercise);
+
+    const result = await ensureExerciseImageAsset(exercise);
+    if (result?.src && result.fallback === false) {
+      image.classList.remove("fallback-image");
+      image.src = `${result.src}?v=${Date.now()}`;
+    }
+  });
+  image.src = exerciseRasterSrc(exercise);
+}
+
+async function ensureExerciseImageAsset(exercise) {
+  const assetId = exerciseAssetId(exercise);
+  if (!exerciseImageRequests.has(assetId)) {
+    exerciseImageRequests.set(
+      assetId,
+      request("/api/exercise-images", {
+        method: "POST",
+        body: JSON.stringify({
+          exercise_ref_id: assetId,
+          name: exercise.name || assetId,
+          scenario: exerciseScenario(exercise),
+          target_muscles: exercise.target_muscles || [],
+          instruction: exercise.instruction || "",
+        }),
+      }).catch(() => ({ fallback: true }))
+    );
+  }
+  return exerciseImageRequests.get(assetId);
 }
 
 function poseFromExerciseName(name) {

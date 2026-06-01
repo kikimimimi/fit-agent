@@ -1,5 +1,8 @@
 from types import SimpleNamespace
 
+from fastapi.testclient import TestClient
+
+from app import app
 from agents.orchestrator import OrchestratorAgent
 from agents.profile_agent import ProfileAgent
 from agents.safety_checker import SafetyChecker
@@ -71,3 +74,21 @@ def test_orchestrator_runs_generate_plan_workflow_without_database():
     assert result["plan"]["weekly_plan"]
     assert "safety_review" in result
     assert "nutrition_guidance" in result
+
+
+def test_exercise_image_endpoint_falls_back_without_image_provider(monkeypatch):
+    monkeypatch.setenv("IMAGE_GENERATION_PROVIDER", "local")
+    response = TestClient(app).post(
+        "/api/exercise-images",
+        json={
+            "exercise_ref_id": "unit_test_missing_photo",
+            "name": "Unit Test Exercise",
+            "scenario": "home",
+            "target_muscles": ["deep core"],
+            "instruction": "Hold a stable position with controlled breathing.",
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["fallback"] is True
+    assert data["status"] == "skipped"

@@ -145,6 +145,17 @@ OPENAI_API_KEY=your_api_key
 
 The model is used for intent understanding and coaching explanations. Workout selection and safety boundaries still come from the deterministic planner and safety checker.
 
+Missing exercise PNGs can also be generated automatically when the same OpenAI key is available. Optional overrides:
+
+```text
+IMAGE_GENERATION_PROVIDER=openai
+IMAGE_MODEL=gpt-image-1
+IMAGE_QUALITY=medium
+IMAGE_SIZE=1024x1024
+```
+
+If `IMAGE_GENERATION_PROVIDER` is not set, FitAgent reuses `LLM_PROVIDER`. Generated files are cached in `frontend/assets/exercises/`, and the frontend falls back to the local illustration if image generation is unavailable.
+
 ## API Examples
 
 Create a user:
