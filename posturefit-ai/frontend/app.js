@@ -617,11 +617,22 @@ function updateAssistantModelBadge(agentResult = null) {
   if (!assistantModelBadge) return;
   const enabled = agentResult?.llm_enabled || currentHealth?.llm?.enabled;
   const call = agentResult?.llm_call || {};
-  const model = call.model || currentHealth?.llm?.model || "";
+  const model = modelDisplayLabel(call, currentHealth?.llm || {});
   assistantModelBadge.className = `assistant-badge ${enabled ? "connected" : "rule-mode"}`;
   assistantModelBadge.textContent = enabled
     ? `${t("modelReady")}${model ? ` · ${model}` : ""}`
     : t("modelRuleMode");
+}
+
+function modelDisplayLabel(call = {}, healthModel = {}) {
+  const displayName = String(healthModel.display_name || "").trim();
+  const model = String(call.model || healthModel.model || "").trim();
+  const provider = String(call.provider || healthModel.provider || "").trim();
+  if (displayName && model && displayName !== model) return `${displayName} · ${model}`;
+  if (displayName) return displayName;
+  if (model && model !== "rule_based_agent") return model;
+  if (provider && !["local", "local_mock", "openai"].includes(provider)) return provider;
+  return "";
 }
 
 function profilePayload() {
@@ -751,18 +762,17 @@ function renderModelStatus(agentResult) {
   const call = agentResult?.llm_call || {};
   const healthModel = currentHealth?.llm || {};
   const enabled = agentResult?.llm_enabled || healthModel.enabled;
-  const provider = call.provider || healthModel.provider || "local";
-  const model = call.model || healthModel.model || "rule_based_agent";
+  const modelLabel = modelDisplayLabel(call, healthModel);
   const status = call.status || (enabled ? "ready" : "not_configured");
   const latency = Number(call.latency_ms || 0);
   const message =
     currentLanguage === "zh"
       ? enabled
-        ? `大模型已接入：${provider} / ${model}${latency ? `，本次响应 ${latency}ms` : ""}`
-        : `当前是规则模式：${provider} / ${model}。如果已在 Render 配置 Key，请重新部署并刷新页面。`
+        ? `大模型已接入：${modelLabel || "已配置模型"}${latency ? `，本次响应 ${latency}ms` : ""}`
+        : "当前是规则模式。Render 中配置 LLM_PROVIDER、LLM_MODEL 和 API Key 后，这里会显示对应模型。"
       : enabled
-        ? `Model connected: ${provider} / ${model}${latency ? `, ${latency}ms this run` : ""}`
-        : `Rule mode: ${provider} / ${model}. If a key is configured in Render, redeploy and refresh.`;
+        ? `Model connected: ${modelLabel || "configured model"}${latency ? `, ${latency}ms this run` : ""}`
+        : "Rule mode. Configure LLM_PROVIDER, LLM_MODEL, and an API key in Render to show the active model here.";
   container.className = `model-status ${enabled ? "connected" : "rule-mode"}`;
   container.innerHTML = `
     <strong>${enabled ? t("modelReady") : t("modelRuleMode")}</strong>

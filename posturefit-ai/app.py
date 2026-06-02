@@ -62,6 +62,7 @@ def health():
         "llm": {
             "provider": llm.provider,
             "model": llm.model,
+            "display_name": llm.display_name,
             "enabled": llm.enabled(),
             "base_url_configured": bool(llm.openai_base_url),
         },

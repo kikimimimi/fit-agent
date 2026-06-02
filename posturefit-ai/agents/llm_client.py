@@ -42,6 +42,7 @@ class LLMClient:
     def __init__(self) -> None:
         self.provider = os.getenv("LLM_PROVIDER", "local").strip().lower()
         self.model = os.getenv("LLM_MODEL", "gpt-4o-mini").strip()
+        self.display_name = os.getenv("LLM_DISPLAY_NAME", "").strip()
         self.openai_api_key = os.getenv("OPENAI_API_KEY") or os.getenv("LLM_API_KEY")
         self.openai_base_url = os.getenv("OPENAI_BASE_URL") or os.getenv("LLM_BASE_URL")
 
