@@ -707,7 +707,7 @@ function assistantPageContext() {
       injury_notes: value("injuryNotes"),
     },
     selected_problem: combinedProblemText(),
-    selected_focus_options: selectedProblemValues(),
+    selected_focus_options: selectedProblemTexts(),
     current_plan: currentPlan ? compactPlanForAssistant(currentPlan) : null,
   };
 }
