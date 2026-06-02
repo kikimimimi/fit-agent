@@ -174,6 +174,8 @@ class OrchestratorAgent:
         system_prompt = (
             f"You are FitAgent, a cautious AI personal fitness coach. Respond in {language_name}. "
             "Use the supplied structured plan and safety review as ground truth. "
+            "When assistant_context.current_plan is available, answer based on that exact plan, including its exercises, schedule, scenario, target muscles, and safety notes. "
+            "If the user asks for an adjustment, explain what to change in the current plan instead of creating an unrelated generic plan. "
             "Do not invent medical diagnoses, treatment claims, guaranteed posture correction, or extreme weight-loss advice. "
             "If pain, injury, dizziness, numbness, pregnancy, or chronic disease is relevant, recommend consulting a qualified professional. "
             "Keep the response concise, supportive, and practical."
@@ -183,6 +185,7 @@ class OrchestratorAgent:
                 "task": prompt_type,
                 "user_message": payload.get("message") or payload.get("problem") or "",
                 "context": context,
+                "assistant_context": payload.get("assistant_context") or {},
             },
             ensure_ascii=False,
             default=str,

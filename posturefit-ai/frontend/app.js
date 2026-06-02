@@ -678,8 +678,9 @@ function assistantPayload(message) {
   const schedule = schedulePayload();
   return {
     user_id: currentUser.id,
-    intent: null,
+    intent: "general_fitness_question",
     message,
+    problem: combinedProblemText(),
     weekly_frequency: schedule.weeklyFrequency,
     session_minutes: schedule.averageMinutes,
     scenario: schedule.scenario,
@@ -689,6 +690,47 @@ function assistantPayload(message) {
     gym_minutes: schedule.gymMinutes,
     injuries: value("injuryNotes"),
     language: currentLanguage,
+    assistant_context: assistantPageContext(),
+  };
+}
+
+function assistantPageContext() {
+  return {
+    profile: {
+      name: value("name"),
+      age: Number(value("age")),
+      sex: choiceValue("sex"),
+      fitness_level: choiceValue("fitnessLevel"),
+      goal: choiceValue("goal"),
+      height_cm: Number(value("height")),
+      weight_kg: Number(value("weight")),
+      injury_notes: value("injuryNotes"),
+    },
+    selected_problem: combinedProblemText(),
+    selected_focus_options: selectedProblemValues(),
+    current_plan: currentPlan ? compactPlanForAssistant(currentPlan) : null,
+  };
+}
+
+function compactPlanForAssistant(plan) {
+  return {
+    problem_analysis: plan.problem_analysis,
+    target_muscles: plan.target_muscles || [],
+    training_focus: plan.training_focus || [],
+    weekly_plan: (plan.weekly_plan || []).map((day) => ({
+      day: day.day,
+      title: day.title,
+      scenario: day.scenario,
+      exercises: (day.exercises || []).map((exercise) => ({
+        name: exercise.name,
+        sets: exercise.sets,
+        reps_or_duration: exercise.reps_or_duration,
+        rest_seconds: exercise.rest_seconds,
+        target_muscles: exercise.target_muscles || [],
+        instruction: exercise.instruction,
+        safety_note: exercise.safety_note,
+      })),
+    })),
   };
 }
 
