@@ -8,10 +8,21 @@
   </head>
   <body>
     <header class="app-header">
-      <div>
+      <div class="brand-block">
         <h1>FitAgent</h1>
         <p data-i18n="subtitle">Problem-driven posture and body-shape workout agent</p>
       </div>
+      <section class="header-assistant" id="assistantPanel" aria-label="Fitness assistant chat">
+        <div class="assistant-input-row">
+          <input id="assistantInput" data-placeholder-key="assistantPlaceholder" placeholder="Ask a fitness question..." />
+          <button id="assistantSendBtn" class="primary" type="button" data-i18n="assistantSend">Ask</button>
+        </div>
+        <div class="assistant-meta-row">
+          <span data-i18n="assistantTitle">Fitness Assistant</span>
+          <span id="assistantModelBadge" class="assistant-badge" data-i18n="modelChecking">Checking model</span>
+        </div>
+        <div id="assistantMessages" class="assistant-messages hidden" aria-live="polite"></div>
+      </section>
       <div class="header-actions">
         <button id="languageToggle" class="language-toggle" type="button">中文</button>
         <span class="status" id="apiStatus">Checking API</span>
@@ -19,26 +30,6 @@
     </header>
 
     <main class="wizard-layout">
-      <section class="panel assistant-panel" id="assistantPanel">
-        <div class="assistant-header">
-          <div>
-            <h2 data-i18n="assistantTitle">Fitness Assistant</h2>
-            <p class="muted" data-i18n="assistantHint">Ask about training, posture, recovery, or how to adjust your current plan.</p>
-          </div>
-          <span id="assistantModelBadge" class="assistant-badge" data-i18n="modelChecking">Checking model</span>
-        </div>
-        <div id="assistantMessages" class="assistant-messages" aria-live="polite">
-          <div class="assistant-message assistant">
-            <strong data-i18n="assistantGreetingTitle">FitAgent</strong>
-            <p data-i18n="assistantGreeting">Hi, I can answer fitness questions and help you adjust your plan.</p>
-          </div>
-        </div>
-        <div class="assistant-input-row">
-          <input id="assistantInput" data-placeholder-key="assistantPlaceholder" placeholder="Ask a fitness question..." />
-          <button id="assistantSendBtn" class="primary" type="button" data-i18n="assistantSend">Ask</button>
-        </div>
-      </section>
-
       <section class="panel form-panel wizard-card" id="wizardCard">
         <div class="wizard-progress">
           <span id="stepCounter">Step 1 of 3</span>
@@ -126,31 +117,6 @@
           <button id="prevStepBtn" class="ghost" type="button" data-i18n="previousStep">Previous</button>
           <button id="nextStepBtn" class="primary" type="button" data-i18n="nextStep">Next Step</button>
           <button id="generateBtn" class="primary hidden" type="button" data-i18n="generatePlan">Generate Plan</button>
-        </div>
-      </section>
-
-      <section class="panel agent-preview-panel" id="agentWorkflowPreview">
-        <div class="agent-preview-header">
-          <h2 data-i18n="agentActivityTitle">Agent Activity</h2>
-          <p class="muted" data-i18n="agentPreviewHint">FitAgent works through multiple agent modules before it returns a plan.</p>
-        </div>
-        <div class="agent-preview-grid">
-          <div class="agent-step">
-            <span class="agent-step-icon">1</span>
-            <div><strong>Profile Agent</strong><span data-i18n="previewProfileAgent">Reads your profile, goal, schedule, and injury notes.</span></div>
-          </div>
-          <div class="agent-step">
-            <span class="agent-step-icon">2</span>
-            <div><strong>Memory Manager</strong><span data-i18n="previewMemoryManager">Checks what FitAgent already remembers about you.</span></div>
-          </div>
-          <div class="agent-step">
-            <span class="agent-step-icon">3</span>
-            <div><strong>Workout Planner</strong><span data-i18n="previewWorkoutPlanner">Builds a structured weekly plan with the exercise rules.</span></div>
-          </div>
-          <div class="agent-step">
-            <span class="agent-step-icon">4</span>
-            <div><strong>Safety Checker</strong><span data-i18n="previewSafetyChecker">Reviews obvious risk before the plan is shown.</span></div>
-          </div>
         </div>
       </section>
 

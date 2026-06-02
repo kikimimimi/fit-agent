@@ -21,7 +21,6 @@ const stepCounter = document.querySelector("#stepCounter");
 const progressBar = document.querySelector("#progressBar");
 const wizardCard = document.querySelector("#wizardCard");
 const resultsPanel = document.querySelector("#resultsPanel");
-const agentWorkflowPreview = document.querySelector("#agentWorkflowPreview");
 const problemOptionsContainer = document.querySelector("#problemOptions");
 const submitFeedbackBtn = document.querySelector("#submitFeedbackBtn");
 const weeklyReviewBtn = document.querySelector("#weeklyReviewBtn");
@@ -895,6 +894,8 @@ async function sendAssistantMessage() {
 }
 
 function appendAssistantMessage(role, message, pending = false) {
+  assistantMessages.classList.remove("hidden");
+  document.querySelector("#assistantPanel")?.classList.add("expanded");
   const item = document.createElement("div");
   item.className = `assistant-message ${role}${pending ? " pending" : ""}`;
   const speaker = role === "user" ? (currentLanguage === "zh" ? "你" : "You") : "FitAgent";
@@ -2104,7 +2105,6 @@ function renderStep() {
 function applyViewMode() {
   const showingResults = currentView === "results";
   wizardCard.classList.toggle("hidden", showingResults);
-  agentWorkflowPreview?.classList.toggle("hidden", showingResults);
   resultsPanel.classList.toggle("hidden", !showingResults);
   document.body.classList.toggle("result-mode", showingResults);
 }
