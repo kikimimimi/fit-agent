@@ -127,6 +127,112 @@ h3 {
   gap: 10px;
 }
 
+.assistant-panel {
+  display: grid;
+  gap: 14px;
+  width: min(960px, 100%);
+  padding: 18px;
+}
+
+.result-mode .assistant-panel {
+  width: min(1440px, 100%);
+  margin: 0 auto;
+}
+
+.assistant-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.assistant-header h2,
+.assistant-header p {
+  margin-bottom: 0;
+}
+
+.assistant-badge {
+  flex: 0 0 auto;
+  padding: 7px 9px;
+  border: 1px solid #dfe6e1;
+  border-radius: 999px;
+  color: #193b32;
+  background: #f7faf8;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.assistant-badge.connected {
+  border-color: #b8d9ca;
+  background: #f2faf6;
+}
+
+.assistant-badge.rule-mode {
+  border-color: #e2c383;
+  background: #fff9ec;
+}
+
+.assistant-messages {
+  display: grid;
+  gap: 9px;
+  max-height: 230px;
+  overflow: auto;
+  padding: 12px;
+  border: 1px solid #dfe6e1;
+  border-radius: 8px;
+  background: #fbfcff;
+}
+
+.assistant-message {
+  max-width: min(760px, 92%);
+  padding: 10px 11px;
+  border: 1px solid #dfe6e1;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.assistant-message.user {
+  justify-self: end;
+  border-color: #b8d9ca;
+  background: #f2faf6;
+}
+
+.assistant-message.assistant {
+  justify-self: start;
+}
+
+.assistant-message.pending {
+  opacity: 0.72;
+}
+
+.assistant-message strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+}
+
+.assistant-message p {
+  margin-bottom: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.assistant-input-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 110px;
+  gap: 10px;
+}
+
+.assistant-input-row input {
+  margin: 0;
+}
+
+.assistant-input-row .primary {
+  width: auto;
+}
+
 .wizard-card {
   min-height: 420px;
 }
@@ -574,6 +680,37 @@ button:disabled {
   background: #fbfcff;
 }
 
+.model-status {
+  display: grid;
+  gap: 4px;
+  margin: 0 0 12px;
+  padding: 10px 11px;
+  border: 1px solid #dfe6e1;
+  border-radius: 8px;
+  background: #fbfcff;
+}
+
+.model-status strong {
+  font-size: 13px;
+}
+
+.model-status span,
+.model-status small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.model-status.connected {
+  border-color: #b8d9ca;
+  background: #f2faf6;
+}
+
+.model-status.rule-mode {
+  border-color: #e2c383;
+  background: #fff9ec;
+}
+
 .memory-type {
   display: inline-block;
   margin-right: 7px;
@@ -895,6 +1032,8 @@ button:disabled {
 
 .exercise-visual {
   grid-row: 1 / span 2;
+  display: grid;
+  place-items: center;
   overflow: hidden;
   border: 1px solid #dfe6e1;
   border-radius: 8px;
@@ -906,6 +1045,7 @@ button:disabled {
   width: 100%;
   aspect-ratio: 10 / 7;
   object-fit: contain;
+  object-position: center center;
   background: #fff;
 }
 
@@ -998,7 +1138,8 @@ button:disabled {
 
   .result-hero,
   .workout-header,
-  .feedback-header {
+  .feedback-header,
+  .assistant-header {
     flex-direction: column;
   }
 
@@ -1018,6 +1159,14 @@ button:disabled {
   .export-menu-list {
     left: 0;
     right: 0;
+  }
+
+  .assistant-input-row {
+    grid-template-columns: 1fr;
+  }
+
+  .assistant-input-row .primary {
+    width: 100%;
   }
 }
 

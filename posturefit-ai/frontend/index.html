@@ -19,6 +19,26 @@
     </header>
 
     <main class="wizard-layout">
+      <section class="panel assistant-panel" id="assistantPanel">
+        <div class="assistant-header">
+          <div>
+            <h2 data-i18n="assistantTitle">Fitness Assistant</h2>
+            <p class="muted" data-i18n="assistantHint">Ask about training, posture, recovery, or how to adjust your current plan.</p>
+          </div>
+          <span id="assistantModelBadge" class="assistant-badge" data-i18n="modelChecking">Checking model</span>
+        </div>
+        <div id="assistantMessages" class="assistant-messages" aria-live="polite">
+          <div class="assistant-message assistant">
+            <strong data-i18n="assistantGreetingTitle">FitAgent</strong>
+            <p data-i18n="assistantGreeting">Hi, I can answer fitness questions and help you adjust your plan.</p>
+          </div>
+        </div>
+        <div class="assistant-input-row">
+          <input id="assistantInput" data-placeholder-key="assistantPlaceholder" placeholder="Ask a fitness question..." />
+          <button id="assistantSendBtn" class="primary" type="button" data-i18n="assistantSend">Ask</button>
+        </div>
+      </section>
+
       <section class="panel form-panel wizard-card" id="wizardCard">
         <div class="wizard-progress">
           <span id="stepCounter">Step 1 of 3</span>
@@ -160,6 +180,7 @@
             </section>
             <section>
               <h3 data-i18n="agentSummary">Agent Summary</h3>
+              <div id="modelStatus" class="model-status"></div>
               <p id="agentSummary"></p>
             </section>
             <section class="agent-card">

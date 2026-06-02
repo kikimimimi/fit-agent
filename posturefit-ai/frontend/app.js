@@ -5,9 +5,10 @@ let selectedFeedback = "";
 let currentLanguage = localStorage.getItem("posturefit-language") || "en";
 let currentStep = 0;
 let currentView = "wizard";
+let currentHealth = null;
 const totalSteps = 3;
 const exerciseImageRequests = new Map();
-const exerciseImageAssetVersion = "gender-library-2026-06-01";
+const exerciseImageAssetVersion = "gender-library-centered-2026-06-01";
 
 const apiStatus = document.querySelector("#apiStatus");
 const generateBtn = document.querySelector("#generateBtn");
@@ -26,6 +27,10 @@ const submitFeedbackBtn = document.querySelector("#submitFeedbackBtn");
 const weeklyReviewBtn = document.querySelector("#weeklyReviewBtn");
 const exportPlanBtn = document.querySelector("#exportPlanBtn");
 const exportMenu = document.querySelector("#exportMenu");
+const assistantMessages = document.querySelector("#assistantMessages");
+const assistantInput = document.querySelector("#assistantInput");
+const assistantSendBtn = document.querySelector("#assistantSendBtn");
+const assistantModelBadge = document.querySelector("#assistantModelBadge");
 
 const problemOptionSets = {
   posture_improvement: [
@@ -76,6 +81,17 @@ const translations = {
     checkingApi: "Checking API",
     apiOnline: "API online",
     apiOffline: "API offline",
+    modelReady: "Model connected",
+    modelRuleMode: "Rule mode",
+    modelChecking: "Checking model",
+    assistantTitle: "Fitness Assistant",
+    assistantHint: "Ask about training, posture, recovery, or how to adjust your current plan.",
+    assistantGreetingTitle: "FitAgent",
+    assistantGreeting: "Hi, I can answer fitness questions and help you adjust your plan.",
+    assistantPlaceholder: "Ask a fitness question...",
+    assistantSend: "Ask",
+    assistantSending: "Thinking...",
+    assistantNeedQuestion: "Please enter a question first.",
     switchLanguage: "中文",
     stepProfile: "Step 1: Profile",
     name: "Name",
@@ -193,6 +209,17 @@ const translations = {
     checkingApi: "检查 API",
     apiOnline: "API 在线",
     apiOffline: "API 离线",
+    modelReady: "大模型已接入",
+    modelRuleMode: "规则模式",
+    modelChecking: "检查模型",
+    assistantTitle: "健身小助手",
+    assistantHint: "可以随时询问训练、体态、恢复，或让 Agent 帮你调整当前计划。",
+    assistantGreetingTitle: "FitAgent",
+    assistantGreeting: "你好，我可以回答健身问题，也可以根据你的资料和计划给出调整建议。",
+    assistantPlaceholder: "输入关于健身的问题...",
+    assistantSend: "提问",
+    assistantSending: "思考中...",
+    assistantNeedQuestion: "请先输入一个问题。",
     switchLanguage: "EN",
     stepProfile: "步骤 1：个人资料",
     name: "姓名",
@@ -576,11 +603,26 @@ async function request(path, options = {}) {
 
 async function checkHealth() {
   try {
-    await request("/api/health");
-    apiStatus.textContent = t("apiOnline");
+    currentHealth = await request("/api/health");
+    const modelReady = currentHealth?.llm?.enabled;
+    window.setTimeout(() => updateAssistantModelBadge(), 0);
+    apiStatus.textContent = `${t("apiOnline")} · ${modelReady ? t("modelReady") : t("modelRuleMode")}`;
   } catch {
+    currentHealth = null;
     apiStatus.textContent = t("apiOffline");
+    updateAssistantModelBadge();
   }
+}
+
+function updateAssistantModelBadge(agentResult = null) {
+  if (!assistantModelBadge) return;
+  const enabled = agentResult?.llm_enabled || currentHealth?.llm?.enabled;
+  const call = agentResult?.llm_call || {};
+  const model = call.model || currentHealth?.llm?.model || "";
+  assistantModelBadge.className = `assistant-badge ${enabled ? "connected" : "rule-mode"}`;
+  assistantModelBadge.textContent = enabled
+    ? `${t("modelReady")}${model ? ` · ${model}` : ""}`
+    : t("modelRuleMode");
 }
 
 function profilePayload() {
@@ -620,6 +662,33 @@ function agentPayload(intent = null, message = null) {
     injuries: value("injuryNotes"),
     language: currentLanguage,
   };
+}
+
+function assistantPayload(message) {
+  const schedule = schedulePayload();
+  return {
+    user_id: currentUser.id,
+    intent: null,
+    message,
+    weekly_frequency: schedule.weeklyFrequency,
+    session_minutes: schedule.averageMinutes,
+    scenario: schedule.scenario,
+    home_sessions: schedule.homeSessions,
+    home_minutes: schedule.homeMinutes,
+    gym_sessions: schedule.gymSessions,
+    gym_minutes: schedule.gymMinutes,
+    injuries: value("injuryNotes"),
+    language: currentLanguage,
+  };
+}
+
+async function ensureAssistantUser() {
+  if (currentUser) return currentUser;
+  currentUser = await request("/api/users", {
+    method: "POST",
+    body: JSON.stringify(profilePayload()),
+  });
+  return currentUser;
 }
 
 async function generatePlan() {
@@ -670,10 +739,37 @@ function renderPlan(plan) {
 }
 
 function renderAgentExperience(agentResult, plan) {
+  renderModelStatus(agentResult);
   renderAgentActivity(agentResult);
   renderAgentMemory(agentResult);
   renderSafetyReview(agentResult);
   renderAgentAdjustment("");
+}
+
+function renderModelStatus(agentResult) {
+  const container = document.querySelector("#modelStatus");
+  if (!container) return;
+  const call = agentResult?.llm_call || {};
+  const healthModel = currentHealth?.llm || {};
+  const enabled = agentResult?.llm_enabled || healthModel.enabled;
+  const provider = call.provider || healthModel.provider || "local";
+  const model = call.model || healthModel.model || "rule_based_agent";
+  const status = call.status || (enabled ? "ready" : "not_configured");
+  const latency = Number(call.latency_ms || 0);
+  const message =
+    currentLanguage === "zh"
+      ? enabled
+        ? `大模型已接入：${provider} / ${model}${latency ? `，本次响应 ${latency}ms` : ""}`
+        : `当前是规则模式：${provider} / ${model}。如果已在 Render 配置 Key，请重新部署并刷新页面。`
+      : enabled
+        ? `Model connected: ${provider} / ${model}${latency ? `, ${latency}ms this run` : ""}`
+        : `Rule mode: ${provider} / ${model}. If a key is configured in Render, redeploy and refresh.`;
+  container.className = `model-status ${enabled ? "connected" : "rule-mode"}`;
+  container.innerHTML = `
+    <strong>${enabled ? t("modelReady") : t("modelRuleMode")}</strong>
+    <span>${escapeHtml(message)}</span>
+    <small>${escapeHtml(status)}</small>
+  `;
 }
 
 function renderAgentActivity(agentResult) {
@@ -764,6 +860,67 @@ function renderAgentAdjustment(message, mode = "info") {
     return;
   }
   container.innerHTML = `<div class="agent-adjustment ${mode}">${escapeHtml(message)}</div>`;
+}
+
+async function sendAssistantMessage() {
+  if (!assistantInput || !assistantMessages) return;
+  const question = assistantInput.value.trim();
+  if (!question) {
+    appendAssistantMessage("assistant", t("assistantNeedQuestion"));
+    return;
+  }
+  appendAssistantMessage("user", question);
+  assistantInput.value = "";
+  assistantSendBtn.disabled = true;
+  assistantSendBtn.textContent = t("assistantSending");
+  const thinking = appendAssistantMessage("assistant", t("assistantSending"), true);
+  try {
+    await ensureAssistantUser();
+    const result = await request("/api/agent/run", {
+      method: "POST",
+      body: JSON.stringify(assistantPayload(question)),
+    });
+    currentAgentResult = { ...currentAgentResult, ...result };
+    updateAssistantModelBadge(result);
+    thinking.remove();
+    appendAssistantMessage("assistant", assistantResponseText(result));
+  } catch (error) {
+    thinking.remove();
+    appendAssistantMessage("assistant", error.message);
+  } finally {
+    assistantSendBtn.disabled = false;
+    assistantSendBtn.textContent = t("assistantSend");
+    assistantInput.focus();
+  }
+}
+
+function appendAssistantMessage(role, message, pending = false) {
+  const item = document.createElement("div");
+  item.className = `assistant-message ${role}${pending ? " pending" : ""}`;
+  const speaker = role === "user" ? (currentLanguage === "zh" ? "你" : "You") : "FitAgent";
+  item.innerHTML = `<strong>${escapeHtml(speaker)}</strong><p>${escapeHtml(message)}</p>`;
+  assistantMessages.appendChild(item);
+  assistantMessages.scrollTop = assistantMessages.scrollHeight;
+  return item;
+}
+
+function assistantResponseText(result) {
+  if (result?.coach_message) return result.coach_message;
+  if (result?.message) return result.message;
+  if (result?.nutrition_guidance) {
+    const guidance = result.nutrition_guidance;
+    return [guidance.summary, ...(guidance.habits || [])].filter(Boolean).join(" ");
+  }
+  if (result?.progress_review) {
+    const review = result.progress_review;
+    const ratio = Math.round((review.completion_ratio || 0) * 100);
+    return currentLanguage === "zh"
+      ? `本周完成 ${review.completed_sessions || 0}/${review.target_frequency || 0} 次训练，完成率 ${ratio}%。${localizeProgressRecommendation(review.recommendation || "")}`
+      : `This week you completed ${review.completed_sessions || 0}/${review.target_frequency || 0} sessions (${ratio}%). ${review.recommendation || ""}`;
+  }
+  return currentLanguage === "zh"
+    ? "我已经收到你的问题，但当前没有生成更具体的回复。"
+    : "I received your question, but no detailed response was generated.";
 }
 
 function humanizeKey(key) {
@@ -981,6 +1138,48 @@ const exerciseVisualById = {
   gym_sled_push: "sled",
 };
 
+const exerciseAssetByName = {
+  "glute bridge": "home_glute_bridge",
+  clamshell: "home_clamshell",
+  "side-lying hip abduction": "home_side_lying_abduction",
+  "side lying hip abduction": "home_side_lying_abduction",
+  "bodyweight squat": "home_bodyweight_squat",
+  "wall angel": "home_wall_angel",
+  "bird dog": "home_bird_dog",
+  "dead bug": "home_dead_bug",
+  plank: "home_plank",
+  "side plank": "home_side_plank",
+  "hip flexor stretch": "home_hip_flexor_stretch",
+  "doorway chest stretch": "home_chest_stretch",
+  "chest stretch": "home_chest_stretch",
+  "reverse snow angel": "home_reverse_snow_angel",
+  "step-up": "home_step_up",
+  "step up": "home_step_up",
+  "split squat": "home_split_squat",
+  "bodyweight good morning": "home_good_morning",
+  "good morning": "home_good_morning",
+  "calf raise": "home_calf_raise",
+  "slow mountain climber": "home_mountain_climber",
+  "mountain climber": "home_mountain_climber",
+  "glute bridge march": "home_glute_march",
+  "hip abduction machine": "gym_hip_abduction_machine",
+  "cable hip abduction": "gym_cable_hip_abduction",
+  "romanian deadlift": "gym_romanian_deadlift",
+  "seated row": "gym_seated_row",
+  "lat pulldown": "gym_lat_pulldown",
+  "face pull": "gym_face_pull",
+  "leg press": "gym_leg_press",
+  "goblet squat": "gym_goblet_squat",
+  "cable pull through": "gym_cable_pull_through",
+  "back extension": "gym_back_extension",
+  "chest-supported row": "gym_chest_supported_row",
+  "chest supported row": "gym_chest_supported_row",
+  "pallof press": "gym_pallof_press",
+  "incline walk": "gym_treadmill_incline_walk",
+  "treadmill incline walk": "gym_treadmill_incline_walk",
+  "sled push": "gym_sled_push",
+};
+
 function exerciseImageSrc(exercise) {
   const pose = exerciseVisualById[exercise.exercise_ref_id] || poseFromExerciseName(exercise.name);
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(exerciseSvg(exercise, pose))}`;
@@ -996,7 +1195,9 @@ function exerciseRasterSrc(exercise, variant = exerciseAssetVariant()) {
 }
 
 function exerciseAssetId(exercise) {
-  const raw = exercise.exercise_ref_id || exercise.name || "exercise";
+  if (exercise.exercise_ref_id) return exercise.exercise_ref_id;
+  const nameKey = String(exercise.name || "").toLowerCase().trim();
+  const raw = exerciseAssetByName[nameKey] || exercise.name || "exercise";
   return String(raw).toLowerCase().replace(/[^a-z0-9_-]+/g, "_").replace(/_+/g, "_").replace(/^_|_$/g, "") || "exercise";
 }
 
@@ -1006,7 +1207,7 @@ function exerciseAssetVariant() {
 }
 
 function exerciseScenario(exercise) {
-  const refId = exercise.exercise_ref_id || "";
+  const refId = exerciseAssetId(exercise);
   return refId.startsWith("gym_") ? "gym" : "home";
 }
 
@@ -1832,6 +2033,13 @@ generateBtn.addEventListener("click", generatePlan);
 savePlanBtn.addEventListener("click", savePlan);
 submitFeedbackBtn?.addEventListener("click", submitFeedback);
 weeklyReviewBtn?.addEventListener("click", generateWeeklyReview);
+assistantSendBtn?.addEventListener("click", sendAssistantMessage);
+assistantInput?.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    sendAssistantMessage();
+  }
+});
 editInputsBtn.addEventListener("click", () => {
   currentView = "wizard";
   applyViewMode();
@@ -1878,6 +2086,7 @@ function applyLanguage() {
     renderPlan(currentPlan);
     renderHistory();
   }
+  updateAssistantModelBadge(currentAgentResult);
 }
 
 function renderStep() {

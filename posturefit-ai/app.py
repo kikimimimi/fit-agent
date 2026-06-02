@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from agents import OrchestratorAgent
 from agents.image_client import ExerciseImageClient
+from agents.llm_client import LLMClient
 from agent import build_agent_summary
 from database import LLMCallLog, Plan, PlanDay, PlanExercise, User, UserProfile, WorkoutLog, get_db, init_db
 from recommendation_engine import generate_recommendation
@@ -54,7 +55,17 @@ def index():
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "service": "FitAgent"}
+    llm = LLMClient()
+    return {
+        "status": "ok",
+        "service": "FitAgent",
+        "llm": {
+            "provider": llm.provider,
+            "model": llm.model,
+            "enabled": llm.enabled(),
+            "base_url_configured": bool(llm.openai_base_url),
+        },
+    }
 
 
 @app.post("/api/users", response_model=UserOut)
