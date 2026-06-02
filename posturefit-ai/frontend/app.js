@@ -603,9 +603,9 @@ async function request(path, options = {}) {
 async function checkHealth() {
   try {
     currentHealth = await request("/api/health");
-    const modelReady = currentHealth?.llm?.enabled;
+    const llmStatus = getLlmStatus();
     window.setTimeout(() => updateAssistantModelBadge(), 0);
-    apiStatus.textContent = `${t("apiOnline")} · ${modelReady ? t("modelReady") : t("modelRuleMode")}`;
+    apiStatus.textContent = `${t("apiOnline")} · ${llmStatus.badgeText}`;
   } catch {
     currentHealth = null;
     apiStatus.textContent = t("apiOffline");
@@ -615,13 +615,9 @@ async function checkHealth() {
 
 function updateAssistantModelBadge(agentResult = null) {
   if (!assistantModelBadge) return;
-  const enabled = agentResult?.llm_enabled || currentHealth?.llm?.enabled;
-  const call = agentResult?.llm_call || {};
-  const model = modelDisplayLabel(call, currentHealth?.llm || {});
-  assistantModelBadge.className = `assistant-badge ${enabled ? "connected" : "rule-mode"}`;
-  assistantModelBadge.textContent = enabled
-    ? `${t("modelReady")}${model ? ` · ${model}` : ""}`
-    : t("modelRuleMode");
+  const status = getLlmStatus(agentResult);
+  assistantModelBadge.className = `assistant-badge ${status.className}`;
+  assistantModelBadge.textContent = status.badgeText;
 }
 
 function modelDisplayLabel(call = {}, healthModel = {}) {
@@ -633,6 +629,111 @@ function modelDisplayLabel(call = {}, healthModel = {}) {
   if (model && model !== "rule_based_agent") return model;
   if (provider && !["local", "local_mock", "openai"].includes(provider)) return provider;
   return "";
+}
+
+function getLlmStatus(agentResult = null) {
+  const call = agentResult?.llm_call || {};
+  const healthModel = currentHealth?.llm || {};
+  const callStatus = String(call.status || "").toLowerCase();
+  const callAttempted = Boolean(call.status || call.provider || call.model);
+  const callSucceeded = Boolean(agentResult?.llm_enabled || callStatus === "success");
+  const callFailed = callAttempted && !callSucceeded && !["", "skipped"].includes(callStatus);
+  const hasConfig = Boolean(healthModel.enabled || callSucceeded);
+  const modelLabel = modelDisplayLabel(call, healthModel);
+  const latency = Number(call.latency_ms || 0);
+  const className = callFailed ? "call-failed" : hasConfig ? "connected" : "rule-mode";
+  const badgeText = llmStatusBadgeText({ callSucceeded, callFailed, hasConfig, modelLabel });
+  return {
+    call,
+    callAttempted,
+    callFailed,
+    callStatus,
+    callSucceeded,
+    className,
+    errorMessage: call.error_message || "",
+    hasConfig,
+    latency,
+    modelLabel,
+    statusText: call.status || (hasConfig ? "ready" : "not_configured"),
+    badgeText,
+  };
+}
+
+function llmStatusBadgeText(status) {
+  const model = status.modelLabel ? ` · ${status.modelLabel}` : "";
+  if (status.callFailed) {
+    return currentLanguage === "zh" ? `大模型调用异常${model}` : `LLM call failed${model}`;
+  }
+  if (status.callSucceeded) return `${t("modelReady")}${model}`;
+  if (status.hasConfig) return currentLanguage === "zh" ? `大模型已配置${model}` : `LLM configured${model}`;
+  return t("modelRuleMode");
+}
+
+function llmStatusTitle(status) {
+  if (status.callFailed) return currentLanguage === "zh" ? "大模型调用异常" : "LLM call failed";
+  if (status.callSucceeded) return t("modelReady");
+  if (status.hasConfig) return currentLanguage === "zh" ? "大模型已配置" : "LLM configured";
+  return t("modelRuleMode");
+}
+
+function llmStatusMessage(status) {
+  const model = status.modelLabel || (currentLanguage === "zh" ? "已配置模型" : "configured model");
+  const latency = status.latency ? (currentLanguage === "zh" ? `，本次响应 ${status.latency}ms` : `, ${status.latency}ms this run`) : "";
+  if (status.callSucceeded) {
+    return currentLanguage === "zh"
+      ? `大模型已接入并参与本次生成：${model}${latency}`
+      : `The model was connected and used for this result: ${model}${latency}`;
+  }
+  if (status.callFailed) {
+    const safeError = safeLlmErrorMessage(status.errorMessage);
+    const error = safeError ? (currentLanguage === "zh" ? `错误：${safeError}` : `Error: ${safeError}`) : "";
+    return currentLanguage === "zh"
+      ? `检测到大模型配置或调用记录，但本次调用没有成功。当前页面已回退为本地规则解释。${error}`
+      : `A model configuration or call was detected, but this run did not succeed. This page fell back to local rule-based explanation. ${error}`;
+  }
+  if (status.hasConfig) {
+    return currentLanguage === "zh"
+      ? `大模型配置已启用：${model}。生成计划或聊天时会尝试调用该模型。`
+      : `Model configuration is enabled: ${model}. FitAgent will try to use it for plan explanations and chat.`;
+  }
+  return currentLanguage === "zh"
+    ? "未接入大模型，当前使用本地规则模式。Render 中配置 LLM_PROVIDER、LLM_MODEL 和 API Key 后，这里会同步显示。"
+    : "No LLM is connected. FitAgent is using local rule mode. Configure LLM_PROVIDER, LLM_MODEL, and an API key in Render to sync the model status here.";
+}
+
+function llmWorkflowMessage(status) {
+  const model = status.modelLabel || (currentLanguage === "zh" ? "配置模型" : "configured model");
+  if (status.callSucceeded) {
+    return currentLanguage === "zh"
+      ? `已调用 ${model} 生成个性化解释，并记录本次调用状态。`
+      : `Used ${model} for personalized coaching text and logged the call status.`;
+  }
+  if (status.callFailed) {
+    return currentLanguage === "zh"
+      ? `检测到大模型配置，但本次调用失败；本页解释已回退为本地规则。`
+      : `Detected model configuration, but this call failed; this page fell back to local rules.`;
+  }
+  if (status.hasConfig) {
+    return currentLanguage === "zh"
+      ? `大模型配置已启用，生成解释或聊天时会尝试调用 ${model}。`
+      : `Model configuration is enabled; FitAgent will try to call ${model} for explanations or chat.`;
+  }
+  return currentLanguage === "zh"
+    ? "未接入大模型，当前使用本地规则解释。"
+    : "No model is connected; using local rule-based explanation.";
+}
+
+function agentStepIcon(state) {
+  if (state === "call-failed") return "!";
+  if (state === "rule-mode") return "-";
+  return "✓";
+}
+
+function safeLlmErrorMessage(message) {
+  return String(message || "")
+    .replace(/sk-[A-Za-z0-9_-]{8,}/g, "sk-***")
+    .replace(/key['":=\s]+[A-Za-z0-9._-]{8,}/gi, "key=***")
+    .slice(0, 180);
 }
 
 function profilePayload() {
@@ -801,25 +902,13 @@ function renderAgentExperience(agentResult, plan) {
 function renderModelStatus(agentResult) {
   const container = document.querySelector("#modelStatus");
   if (!container) return;
-  const call = agentResult?.llm_call || {};
-  const healthModel = currentHealth?.llm || {};
-  const enabled = agentResult?.llm_enabled || healthModel.enabled;
-  const modelLabel = modelDisplayLabel(call, healthModel);
-  const status = call.status || (enabled ? "ready" : "not_configured");
-  const latency = Number(call.latency_ms || 0);
-  const message =
-    currentLanguage === "zh"
-      ? enabled
-        ? `大模型已接入：${modelLabel || "已配置模型"}${latency ? `，本次响应 ${latency}ms` : ""}`
-        : "当前是规则模式。Render 中配置 LLM_PROVIDER、LLM_MODEL 和 API Key 后，这里会显示对应模型。"
-      : enabled
-        ? `Model connected: ${modelLabel || "configured model"}${latency ? `, ${latency}ms this run` : ""}`
-        : "Rule mode. Configure LLM_PROVIDER, LLM_MODEL, and an API key in Render to show the active model here.";
-  container.className = `model-status ${enabled ? "connected" : "rule-mode"}`;
+  const status = getLlmStatus(agentResult);
+  const message = llmStatusMessage(status);
+  container.className = `model-status ${status.className}`;
   container.innerHTML = `
-    <strong>${enabled ? t("modelReady") : t("modelRuleMode")}</strong>
+    <strong>${escapeHtml(llmStatusTitle(status))}</strong>
     <span>${escapeHtml(message)}</span>
-    <small>${escapeHtml(status)}</small>
+    <small>${escapeHtml(status.statusText)}</small>
   `;
 }
 
@@ -827,31 +916,32 @@ function renderAgentActivity(agentResult) {
   const container = document.querySelector("#agentActivity");
   if (!container) return;
   const intent = agentResult?.intent || "generate_workout_plan";
+  const llmStatus = getLlmStatus(agentResult);
   const steps =
     currentLanguage === "zh"
       ? [
-          ["Profile Agent", "分析年龄、训练水平、目标、时间安排和伤病备注。"],
-          ["Memory Manager", "读取已有偏好，并写入本次最新训练请求。"],
-          ["Orchestrator", `将本次请求路由为 ${intent}。`],
-          ["Workout Planner", "基于本地动作规则生成结构化每周训练计划。"],
-          ["Safety Checker", "检查训练强度、休息日和明显伤病风险。"],
-          ["Nutrition Planner", "补充保守的饮食习惯建议和健康免责声明。"],
-          ["LLM Coach", agentResult?.llm_enabled ? "已调用大模型生成个性化解释。" : "未启用大模型，当前使用本地规则解释。"],
+          ["Profile Agent", "分析年龄、训练水平、目标、时间安排和伤病备注。", "connected"],
+          ["Memory Manager", "读取已有偏好，并写入本次最新训练请求。", "connected"],
+          ["Orchestrator", `将本次请求路由为 ${intent}。`, "connected"],
+          ["Workout Planner", "基于本地动作规则生成结构化每周训练计划。", "connected"],
+          ["Safety Checker", "检查训练强度、休息日和明显伤病风险。", "connected"],
+          ["Nutrition Planner", "补充保守的饮食习惯建议和健康免责声明。", "connected"],
+          ["LLM Coach", llmWorkflowMessage(llmStatus), llmStatus.className],
         ]
       : [
-          ["Profile Agent", "Analyzed age, training level, goal, schedule, and injury notes."],
-          ["Memory Manager", "Checked previous preferences and wrote the latest request."],
-          ["Orchestrator", `Routed this request as ${intent}.`],
-          ["Workout Planner", "Generated a structured weekly plan from the local exercise rules."],
-          ["Safety Checker", "Reviewed intensity, rest days, and obvious injury risk."],
-          ["Nutrition Planner", "Added conservative habit guidance with a health disclaimer."],
-          ["LLM Coach", agentResult?.llm_enabled ? "Used the configured model for personalized coaching text." : "Model is not enabled; using local rule-based explanation."],
+          ["Profile Agent", "Analyzed age, training level, goal, schedule, and injury notes.", "connected"],
+          ["Memory Manager", "Checked previous preferences and wrote the latest request.", "connected"],
+          ["Orchestrator", `Routed this request as ${intent}.`, "connected"],
+          ["Workout Planner", "Generated a structured weekly plan from the local exercise rules.", "connected"],
+          ["Safety Checker", "Reviewed intensity, rest days, and obvious injury risk.", "connected"],
+          ["Nutrition Planner", "Added conservative habit guidance with a health disclaimer.", "connected"],
+          ["LLM Coach", llmWorkflowMessage(llmStatus), llmStatus.className],
         ];
   container.innerHTML = steps
     .map(
-      ([title, detail]) => `
-        <div class="agent-step">
-          <span class="agent-step-icon">✓</span>
+      ([title, detail, state]) => `
+        <div class="agent-step ${escapeAttr(state || "connected")}">
+          <span class="agent-step-icon">${escapeHtml(agentStepIcon(state))}</span>
           <div><strong>${escapeHtml(title)}</strong><span>${escapeHtml(detail)}</span></div>
         </div>
       `

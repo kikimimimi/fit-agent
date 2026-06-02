@@ -152,6 +152,11 @@ h3 {
   background: #fff9ec;
 }
 
+.assistant-badge.call-failed {
+  border-color: #e2c383;
+  background: #fff9ec;
+}
+
 .assistant-messages {
   display: grid;
   gap: 9px;
@@ -640,6 +645,19 @@ button:disabled {
   font-weight: 900;
 }
 
+.agent-step.rule-mode .agent-step-icon {
+  background: var(--gold);
+}
+
+.agent-step.call-failed {
+  border-color: #e2c383;
+  background: #fff9ec;
+}
+
+.agent-step.call-failed .agent-step-icon {
+  background: var(--gold);
+}
+
 .agent-step strong,
 .memory-row strong,
 .safety-status strong {
@@ -693,6 +711,11 @@ button:disabled {
 }
 
 .model-status.rule-mode {
+  border-color: #e2c383;
+  background: #fff9ec;
+}
+
+.model-status.call-failed {
   border-color: #e2c383;
   background: #fff9ec;
 }

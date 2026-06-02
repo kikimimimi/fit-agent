@@ -39,23 +39,27 @@ class LLMResult:
 class LLMClient:
     """Small provider wrapper that keeps the rule-based agent usable without an API key."""
 
+    OPENAI_COMPATIBLE_PROVIDERS = {"openai", "deepseek", "openai_compatible", "compatible"}
+
     def __init__(self) -> None:
         self.provider = os.getenv("LLM_PROVIDER", "local").strip().lower()
         self.model = os.getenv("LLM_MODEL", "gpt-4o-mini").strip()
         self.display_name = os.getenv("LLM_DISPLAY_NAME", "").strip()
-        self.openai_api_key = os.getenv("OPENAI_API_KEY") or os.getenv("LLM_API_KEY")
+        self.openai_api_key = os.getenv("OPENAI_API_KEY") or os.getenv("LLM_API_KEY") or os.getenv("DEEPSEEK_API_KEY")
         self.openai_base_url = os.getenv("OPENAI_BASE_URL") or os.getenv("LLM_BASE_URL")
+        if self.provider == "deepseek" and not self.openai_base_url:
+            self.openai_base_url = "https://api.deepseek.com"
 
     def enabled(self) -> bool:
-        return self.provider == "openai" and bool(self.openai_api_key) and OpenAI is not None
+        return self.provider in self.OPENAI_COMPATIBLE_PROVIDERS and bool(self.openai_api_key) and OpenAI is not None
 
     def complete(self, prompt_type: str, system_prompt: str, user_prompt: str, max_tokens: int = 420) -> LLMResult:
-        if self.provider != "openai":
-            return LLMResult(prompt_type=prompt_type, error_message="LLM_PROVIDER is not openai.")
+        if self.provider not in self.OPENAI_COMPATIBLE_PROVIDERS:
+            return LLMResult(provider=self.provider, prompt_type=prompt_type, error_message="LLM_PROVIDER is not OpenAI-compatible.")
         if not self.openai_api_key:
-            return LLMResult(provider="openai", model=self.model, prompt_type=prompt_type, error_message="OPENAI_API_KEY is not set.")
+            return LLMResult(provider=self.provider, model=self.model, prompt_type=prompt_type, error_message="OPENAI_API_KEY, LLM_API_KEY, or DEEPSEEK_API_KEY is not set.")
         if OpenAI is None:
-            return LLMResult(provider="openai", model=self.model, prompt_type=prompt_type, error_message="openai package is not installed.")
+            return LLMResult(provider=self.provider, model=self.model, prompt_type=prompt_type, error_message="openai package is not installed.")
 
         started = time.perf_counter()
         try:
@@ -63,12 +67,12 @@ class LLMClient:
             if self.openai_base_url:
                 client_kwargs["base_url"] = self.openai_base_url
             client = OpenAI(**client_kwargs)
-            response = self._responses_create(client, system_prompt, user_prompt, max_tokens)
+            response = self._create_completion(client, system_prompt, user_prompt, max_tokens)
             text = self._extract_response_text(response)
             usage = getattr(response, "usage", None)
             return LLMResult(
                 text=text.strip(),
-                provider="openai",
+                provider=self.provider,
                 model=self.model,
                 prompt_type=prompt_type,
                 prompt_tokens=self._usage_value(usage, "input_tokens", "prompt_tokens"),
@@ -78,7 +82,7 @@ class LLMClient:
             )
         except Exception as exc:
             return LLMResult(
-                provider="openai",
+                provider=self.provider,
                 model=self.model,
                 prompt_type=prompt_type,
                 latency_ms=int((time.perf_counter() - started) * 1000),
@@ -86,8 +90,8 @@ class LLMClient:
                 error_message=str(exc)[:500],
             )
 
-    def _responses_create(self, client, system_prompt: str, user_prompt: str, max_tokens: int):
-        if hasattr(client, "responses"):
+    def _create_completion(self, client, system_prompt: str, user_prompt: str, max_tokens: int):
+        if self._use_responses_api(client):
             return client.responses.create(
                 model=self.model,
                 input=[
@@ -104,6 +108,15 @@ class LLMClient:
             ],
             max_tokens=max_tokens,
         )
+
+    def _use_responses_api(self, client) -> bool:
+        if not hasattr(client, "responses"):
+            return False
+        if self.provider != "openai":
+            return False
+        if self.openai_base_url and "api.openai.com" not in self.openai_base_url:
+            return False
+        return True
 
     def _extract_response_text(self, response) -> str:
         output_text = getattr(response, "output_text", None)

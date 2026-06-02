@@ -148,6 +148,27 @@ The model is used for intent understanding and coaching explanations. Workout se
 
 For an OpenAI-compatible proxy, keep `LLM_PROVIDER=openai`, put the proxy card/key in `OPENAI_API_KEY`, and set `OPENAI_BASE_URL` to the proxy's OpenAI-compatible endpoint.
 
+For DeepSeek, either use the explicit provider:
+
+```text
+LLM_PROVIDER=deepseek
+LLM_MODEL=deepseek-chat
+DEEPSEEK_API_KEY=your_deepseek_key
+LLM_DISPLAY_NAME=DeepSeek
+```
+
+or keep the generic OpenAI-compatible style:
+
+```text
+LLM_PROVIDER=openai
+LLM_MODEL=deepseek-chat
+OPENAI_API_KEY=your_deepseek_key
+OPENAI_BASE_URL=https://api.deepseek.com
+LLM_DISPLAY_NAME=DeepSeek
+```
+
+OpenAI-compatible providers use Chat Completions by default so the fitness assistant chat works with DeepSeek and common proxy services.
+
 Missing exercise PNGs can also be generated automatically when the same OpenAI key is available. Optional overrides:
 
 ```text

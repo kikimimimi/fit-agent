@@ -3,6 +3,8 @@ from types import SimpleNamespace
 from fastapi.testclient import TestClient
 
 from app import app
+import agents.llm_client as llm_module
+from agents.llm_client import LLMClient
 from agents.orchestrator import OrchestratorAgent
 from agents.profile_agent import ProfileAgent
 from agents.safety_checker import SafetyChecker
@@ -92,3 +94,49 @@ def test_exercise_image_endpoint_falls_back_without_image_provider(monkeypatch):
     data = response.json()
     assert data["fallback"] is True
     assert data["status"] == "skipped"
+
+
+def test_deepseek_provider_uses_chat_completions(monkeypatch):
+    calls = {"chat": 0, "responses": 0, "base_url": None}
+
+    class FakeResponses:
+        def create(self, **kwargs):
+            calls["responses"] += 1
+            raise AssertionError("DeepSeek-compatible calls should not use the Responses API")
+
+    class FakeCompletions:
+        def create(self, **kwargs):
+            calls["chat"] += 1
+            return SimpleNamespace(
+                choices=[SimpleNamespace(message=SimpleNamespace(content="可以先做轻柔活动，并观察疼痛变化。"))],
+                usage=SimpleNamespace(prompt_tokens=12, completion_tokens=8),
+            )
+
+    class FakeChat:
+        def __init__(self):
+            self.completions = FakeCompletions()
+
+    class FakeOpenAI:
+        def __init__(self, **kwargs):
+            calls["base_url"] = kwargs.get("base_url")
+            self.responses = FakeResponses()
+            self.chat = FakeChat()
+
+    monkeypatch.setattr(llm_module, "OpenAI", FakeOpenAI)
+    monkeypatch.setenv("LLM_PROVIDER", "deepseek")
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "test-key")
+    monkeypatch.setenv("LLM_MODEL", "deepseek-chat")
+    monkeypatch.delenv("OPENAI_BASE_URL", raising=False)
+    monkeypatch.delenv("LLM_BASE_URL", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("LLM_API_KEY", raising=False)
+
+    client = LLMClient()
+    result = client.complete("general_fitness_question", "system", "user")
+
+    assert client.enabled() is True
+    assert calls["base_url"] == "https://api.deepseek.com"
+    assert calls["chat"] == 1
+    assert calls["responses"] == 0
+    assert result.status == "success"
+    assert result.provider == "deepseek"
